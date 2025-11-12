@@ -1,8 +1,39 @@
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 import uuid
 
+class UserManager(BaseUserManager):
+    use_in_migrations = True
+
+    def _create_user(self, phone_number, email, password, **extra_fields):
+        if not phone_number:
+            raise ValueError('The given phone number must be set')
+        email = self.normalize_email(email)
+        user = self.model(phone_number=phone_number, email=email, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, phone_number, email=None, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        return self._create_user(phone_number, email, password, **extra_fields)
+
+    def create_superuser(self, phone_number, email, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(phone_number, email, password, **extra_fields)
+
 class User(AbstractUser):
+    # Add this line to use the custom manager
+    objects = UserManager()
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     phone_number = models.CharField(max_length=15, unique=True)
     national_id = models.CharField(max_length=20, unique=True, null=True, blank=True)
