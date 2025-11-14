@@ -26,11 +26,19 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (phoneNumber, password) => {
     try {
+      console.log('🔵 [AuthContext] Attempting login...');
       const result = await authService.login(phoneNumber, password);
-      setCurrentUser(result.user);
-      return { success: true };
+      console.log('🟢 [AuthContext] Login successful:', result);
+      
+      // Update current user state
+      setCurrentUser(result.user || result); // Handle both response formats
+      return { success: true, user: result.user || result };
     } catch (error) {
-      return { success: false, error: error.error || 'Login failed' };
+      console.error('🔴 [AuthContext] Login failed:', error);
+      return { 
+        success: false, 
+        error: error.error || error.detail || 'Login failed' 
+      };
     }
   };
 
@@ -38,9 +46,11 @@ export const AuthProvider = ({ children }) => {
     try {
       console.log('🔵 [AuthContext] Calling authService.register with:', userData);
       const result = await authService.register(userData);
-      console.log('🟢 [AuthContext] Registration successful, setting user:', result.user);
-      setCurrentUser(result.user);
-      return { success: true };
+      console.log('🟢 [AuthContext] Registration successful:', result);
+      
+      // Update current user state
+      setCurrentUser(result.user || result); // Handle both response formats
+      return { success: true, user: result.user || result };
     } catch (error) {
       console.error('🔴 [AuthContext] Registration error:', error);
       return { 
@@ -60,7 +70,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: !!currentUser,
+    isAuthenticated: authService.isAuthenticated(),
     loading
   };
 

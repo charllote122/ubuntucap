@@ -4,6 +4,11 @@
   padding: 2rem;
   text-align: center;
 }
+:root {
+  --ubuntu-green: #2E8B57;
+  --ubuntu-green-dark: #276749;
+  --ubuntu-green-light: #C6F6D5;
+}
 
 .logo {
   height: 6em;
