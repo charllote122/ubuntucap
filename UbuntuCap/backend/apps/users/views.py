@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate
 from .models import User
 from .serializers import UserSerializer
@@ -40,6 +40,7 @@ class RegisterView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 @api_view(['POST'])
+@permission_classes([permissions.AllowAny])
 def login_view(request):
     phone_number = request.data.get('phone_number')
     password = request.data.get('password')
