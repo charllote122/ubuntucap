@@ -16,6 +16,7 @@ function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false); // Add success state
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ function Register() {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setSuccess(false);
 
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
@@ -38,15 +40,48 @@ function Register() {
       return;
     }
 
+    // Transform form data to match backend API expectations
+    const apiData = {
+      phone_number: formData.phone,
+      email: formData.email,
+      password: formData.password,
+      password2: formData.confirmPassword,
+      first_name: formData.firstName,
+      last_name: formData.lastName,
+      business_name: formData.businessName,
+      business_type: formData.businessType,
+      business_location: formData.businessLocation
+    };
+
+    console.log('Sending registration data:', apiData);
+
     try {
-      const result = await register(formData);
+      const result = await register(apiData);
       if (result.success) {
-        navigate('/dashboard');
+        setSuccess(true);
+        // Show success message for 2 seconds, then redirect to login
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
       } else {
         setError(result.error);
       }
     } catch (err) {
-      setError('An unexpected error occurred');
+      console.error('Registration error:', err);
+      // Handle different error formats from backend
+      if (err.phone_number) {
+        setError(`Phone number: ${err.phone_number.join(', ')}`);
+      } else if (err.email) {
+        setError(`Email: ${err.email.join(', ')}`);
+      } else if (err.password) {
+        setError(`Password: ${err.password.join(', ')}`);
+      } else if (err.detail) {
+        setError(err.detail);
+      } else if (err.message) {
+        setError(err.message);
+      } else {
+        setError('Registration failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -60,13 +95,22 @@ function Register() {
             Create your account
           </h2>
         </div>
+        
+        {/* Success Message */}
+        {success && (
+          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+            ✅ Registration successful! Redirecting to login...
+          </div>
+        )}
+        
+        {/* Error Message */}
+        {error && !success && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+        
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
-            </div>
-          )}
-          
           <div className="grid grid-cols-2 gap-4">
             <div>
               <input
@@ -98,7 +142,7 @@ function Register() {
               type="tel"
               required
               className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Phone Number"
+              placeholder="Phone Number (e.g., +1234567890)"
               value={formData.phone}
               onChange={handleChange}
             />
@@ -133,6 +177,7 @@ function Register() {
               <input
                 name="businessType"
                 type="text"
+                required
                 className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Business Type"
                 value={formData.businessType}
@@ -143,6 +188,7 @@ function Register() {
               <input
                 name="businessLocation"
                 type="text"
+                required
                 className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
                 placeholder="Location"
                 value={formData.businessLocation}

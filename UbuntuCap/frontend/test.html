@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registration Test</title>
+</head>
+<body>
+    <h1>Registration Test Page</h1>
+    <button onclick="testRegistration()">Test Registration</button>
+    <div id="result" style="margin-top: 20px; padding: 10px; border: 1px solid #ccc; white-space: pre-wrap;"></div>
+
+    <script>
+        async function testRegistration() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing registration...';
+            
+            try {
+                const testData = {
+                    "phone_number": "+254711223344",
+                    "email": "test@example.com",
+                    "password": "testpass123",
+                    "password2": "testpass123",
+                    "first_name": "Test",
+                    "last_name": "User",
+                    "business_name": "Test Business",
+                    "business_type": "Retail",
+                    "business_location": "Nairobi"
+                };
+
+                const response = await fetch('http://localhost:8001/api/auth/register/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = '✅ SUCCESS!\n\n' + JSON.stringify(data, null, 2);
+                } else {
+                    resultDiv.innerHTML = '❌ FAILED (Status: ' + response.status + ')\n\n' + JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                resultDiv.innerHTML = '🔥 NETWORK ERROR\n\n' + error.message;
+            }
+        }
+
+        // Also test backend connection
+        async function testBackend() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing backend connection...';
+            
+            try {
+                const response = await fetch('http://localhost:8001/api/');
+                const data = await response.json();
+                resultDiv.innerHTML = '✅ Backend is working!\n\n' + JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultDiv.innerHTML = '❌ Backend not accessible\n\n' + error.message;
+            }
+        }
+    </script>
+
+    <div style="margin-top: 20px;">
+        <button onclick="testBackend()">Test Backend Connection</button>
+        <button onclick="testRegistration()">Test Registration</button>
+    </div>
+</body>
+</html>

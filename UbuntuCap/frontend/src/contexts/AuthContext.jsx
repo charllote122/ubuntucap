@@ -4,7 +4,11 @@ import { authService } from '../services/authService';
 const AuthContext = createContext();
 
 export const useAuth = () => {
-  return useContext(AuthContext);
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
 
 export const AuthProvider = ({ children }) => {
@@ -32,11 +36,17 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
+      console.log('🔵 [AuthContext] Calling authService.register with:', userData);
       const result = await authService.register(userData);
+      console.log('🟢 [AuthContext] Registration successful, setting user:', result.user);
       setCurrentUser(result.user);
       return { success: true };
     } catch (error) {
-      return { success: false, error: error.error || 'Registration failed' };
+      console.error('🔴 [AuthContext] Registration error:', error);
+      return { 
+        success: false, 
+        error: error.error || error.detail || 'Registration failed' 
+      };
     }
   };
 
@@ -50,12 +60,13 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: authService.isAuthenticated()
+    isAuthenticated: !!currentUser,
+    loading
   };
 
   return (
     <AuthContext.Provider value={value}>
-      {!loading && children}
+      {children}
     </AuthContext.Provider>
   );
 };
