@@ -1,6 +1,11 @@
-from django.urls import path
-from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import LoanViewSet, LoanRepaymentViewSet
+
+router = DefaultRouter()
+router.register(r'', LoanViewSet, basename='loan')
+router.register(r'repayments', LoanRepaymentViewSet, basename='repayment')
 
 urlpatterns = [
-    path('', views.LoanApplicationViewSet.as_view({'get': 'list'}), name='loan-list'),
+    path('', include(router.urls)),
 ]

@@ -11,7 +11,7 @@ DATABASES = {
 DEBUG = True
 ALLOWED_HOSTS = ['*']
 
-# CORS settings
+# CORS settings for development
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
@@ -20,13 +20,15 @@ CORS_ALLOWED_ORIGINS = [
     "https://humble-parakeet-7vprgxgxq7qxf79q-8001.app.github.dev",
 ]
 
-# Add JWT authentication
+# Add JWT authentication to REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticatedOrReadOnly',
+        'rest_framework.permissions.IsAuthenticated',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 20,
 }

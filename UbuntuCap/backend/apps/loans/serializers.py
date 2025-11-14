@@ -1,52 +1,69 @@
 from rest_framework import serializers
-from .models import LoanApplication, Loan, Repayment
+from .models import Loan, LoanRepayment, LoanApplication
+from apps.users.models import User
 
 class LoanApplicationSerializer(serializers.ModelSerializer):
-    user_full_name = serializers.CharField(source='user.get_full_name', read_only=True)
-    user_phone = serializers.CharField(source='user.phone_number', read_only=True)
-    
     class Meta:
         model = LoanApplication
-        fields = [
-            'id', 'user', 'user_full_name', 'user_phone', 'amount_requested',
-            'loan_purpose', 'repayment_period_days', 'status', 'credit_score',
-            'decision_reason', 'applied_at', 'reviewed_at', 'decision_at'
-        ]
-        read_only_fields = [
-            'id', 'user', 'status', 'credit_score', 'decision_reason',
-            'applied_at', 'reviewed_at', 'decision_at'
-        ]
+        fields = ['amount', 'purpose', 'term_days', 'business_age_months', 
+                 'existing_loans_count', 'average_monthly_sales']
     
-    def validate_amount_requested(self, value):
-        if value < 100:
-            raise serializers.ValidationError("Minimum loan amount is 100 KSh")
-        if value > 50000:
-            raise serializers.ValidationError("Maximum loan amount is 50,000 KSh for first-time borrowers")
+    def validate_amount(self, value):
+        if value > 500000:
+            raise serializers.ValidationError("Loan amount exceeds maximum limit of 500,000")
+        if value < 1000:
+            raise serializers.ValidationError("Loan amount must be at least 1,000")
         return value
 
-class LoanSerializer(serializers.ModelSerializer):
-    user_full_name = serializers.CharField(source='application.user.get_full_name', read_only=True)
-    user_phone = serializers.CharField(source='application.user.phone_number', read_only=True)
-    loan_purpose = serializers.CharField(source='application.loan_purpose', read_only=True)
+class LoanRepaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoanRepayment
+        fields = '__all__'
+        read_only_fields = ['id', 'created_at']
+
+class LoanListSerializer(serializers.ModelSerializer):
+    remaining_balance = serializers.ReadOnlyField()
+    total_repayable = serializers.ReadOnlyField()
+    is_overdue = serializers.ReadOnlyField()
     
     class Meta:
         model = Loan
         fields = [
-            'id', 'user_full_name', 'user_phone', 'amount_approved',
-            'interest_rate', 'service_fee', 'total_amount_due', 'amount_disbursed',
-            'disbursement_date', 'due_date', 'status', 'amount_repaid', 
-            'last_repayment_date', 'loan_purpose'
+            'id', 'amount', 'purpose', 'status', 'application_date',
+            'due_date', 'repaid_amount', 'remaining_balance', 'total_repayable',
+            'interest_rate', 'term_days', 'is_overdue'
         ]
-        read_only_fields = ['id', 'disbursement_date', 'status']
 
-class RepaymentSerializer(serializers.ModelSerializer):
-    user_phone = serializers.CharField(source='loan.application.user.phone_number', read_only=True)
-    loan_id = serializers.UUIDField(source='loan.id', read_only=True)
+class LoanDetailSerializer(serializers.ModelSerializer):
+    repayments = LoanRepaymentSerializer(many=True, read_only=True)
+    remaining_balance = serializers.ReadOnlyField()
+    total_repayable = serializers.ReadOnlyField()
+    is_overdue = serializers.ReadOnlyField()
+    user_phone = serializers.CharField(source='user.phone_number', read_only=True)
+    user_name = serializers.CharField(source='user.get_full_name', read_only=True)
     
     class Meta:
-        model = Repayment
-        fields = [
-            'id', 'loan_id', 'user_phone', 'amount', 'mpesa_receipt_number',
-            'phone_number', 'transaction_date', 'recorded_at'
-        ]
-        read_only_fields = ['id', 'recorded_at']
+        model = Loan
+        fields = '__all__'
+
+class RepaymentCalculationSerializer(serializers.Serializer):
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2)
+    term_days = serializers.IntegerField(default=30)
+    
+    def calculate_repayment(self):
+        amount = self.validated_data['amount']
+        term_days = self.validated_data['term_days']
+        interest_rate = 8.5  # Base interest rate
+        
+        interest_amount = amount * interest_rate / 100
+        total_repayable = amount + interest_amount
+        daily_repayment = total_repayable / term_days
+        
+        return {
+            'loan_amount': float(amount),
+            'term_days': term_days,
+            'interest_rate': interest_rate,
+            'total_repayable': float(total_repayable),
+            'daily_repayment': float(daily_repayment),
+            'disbursement_fee': 100.0
+        }

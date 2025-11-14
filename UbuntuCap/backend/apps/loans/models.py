@@ -1,92 +1,102 @@
 from django.db import models
-from django.core.validators import MinValueValidator
+from django.conf import settings
+from django.utils import timezone
 import uuid
-from apps.users.models import User
-
-class LoanApplication(models.Model):
-    STATUS_PENDING = 'pending'
-    STATUS_APPROVED = 'approved'
-    STATUS_REJECTED = 'rejected'
-    STATUS_DISBURSED = 'disbursed'
-    
-    STATUS_CHOICES = [
-        (STATUS_PENDING, 'Pending'),
-        (STATUS_APPROVED, 'Approved'),
-        (STATUS_REJECTED, 'Rejected'),
-        (STATUS_DISBURSED, 'Disbursed'),
-    ]
-    
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='loan_applications')
-    
-    amount_requested = models.DecimalField(
-        max_digits=12, 
-        decimal_places=2,
-        validators=[MinValueValidator(100)]
-    )
-    loan_purpose = models.CharField(max_length=200)
-    repayment_period_days = models.IntegerField(default=30)
-    
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_PENDING)
-    credit_score = models.IntegerField(null=True, blank=True)
-    decision_reason = models.TextField(blank=True)
-    
-    applied_at = models.DateTimeField(auto_now_add=True)
-    reviewed_at = models.DateTimeField(null=True, blank=True)
-    decision_at = models.DateTimeField(null=True, blank=True)
-    
-    class Meta:
-        db_table = 'loan_applications'
-        ordering = ['-applied_at']
-    
-    def __str__(self):
-        return f"Loan App #{self.id} - {self.user.phone_number}"
 
 class Loan(models.Model):
-    STATUS_ACTIVE = 'active'
-    STATUS_REPAID = 'repaid'
-    STATUS_DEFAULTED = 'defaulted'
+    LOAN_STATUS = (
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('disbursed', 'Disbursed'),
+        ('completed', 'Completed'),
+        ('defaulted', 'Defaulted'),
+    )
     
-    STATUS_CHOICES = [
-        (STATUS_ACTIVE, 'Active'),
-        (STATUS_REPAID, 'Fully Repaid'),
-        (STATUS_DEFAULTED, 'Defaulted'),
-    ]
+    BUSINESS_TYPES = (
+        ('retail', 'Retail'),
+        ('agriculture', 'Agriculture'),
+        ('services', 'Services'),
+        ('manufacturing', 'Manufacturing'),
+        ('other', 'Other'),
+    )
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    application = models.OneToOneField(LoanApplication, on_delete=models.CASCADE, related_name='loan')
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='loans')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    purpose = models.CharField(max_length=255)
+    business_type = models.CharField(max_length=50, choices=BUSINESS_TYPES)
     
-    amount_approved = models.DecimalField(max_digits=12, decimal_places=2)
-    interest_rate = models.DecimalField(max_digits=5, decimal_places=2)
-    service_fee = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    status = models.CharField(max_length=20, choices=LOAN_STATUS, default='pending')
+    term_days = models.IntegerField(default=30)
+    interest_rate = models.DecimalField(max_digits=5, decimal_places=2, default=8.5)
     
-    total_amount_due = models.DecimalField(max_digits=12, decimal_places=2)
-    amount_disbursed = models.DecimalField(max_digits=12, decimal_places=2)
+    # Dates
+    application_date = models.DateTimeField(auto_now_add=True)
+    approved_date = models.DateTimeField(null=True, blank=True)
+    disbursed_date = models.DateTimeField(null=True, blank=True)
+    due_date = models.DateTimeField(null=True, blank=True)
     
-    disbursement_date = models.DateTimeField(null=True, blank=True)
-    due_date = models.DateField()
+    # Repayment tracking
+    repaid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default=STATUS_ACTIVE)
-    amount_repaid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
-    last_repayment_date = models.DateTimeField(null=True, blank=True)
+    # ML Credit Scoring fields
+    credit_score = models.IntegerField(default=0)
+    risk_level = models.CharField(max_length=20, default='medium')  # low, medium, high
     
     class Meta:
-        db_table = 'loans'
+        ordering = ['-application_date']
     
     def __str__(self):
-        return f"Loan #{self.id} - {self.application.user.phone_number}"
+        return f"{self.user.phone_number} - {self.amount} - {self.status}"
+    
+    @property
+    def total_repayable(self):
+        interest_amount = self.amount * self.interest_rate / 100
+        return self.amount + interest_amount
+    
+    @property
+    def remaining_balance(self):
+        return self.total_repayable - self.repaid_amount
+    
+    @property
+    def is_overdue(self):
+        if self.due_date and self.status in ['disbursed', 'approved']:
+            return timezone.now() > self.due_date and self.remaining_balance > 0
+        return False
 
-class Repayment(models.Model):
+class LoanRepayment(models.Model):
+    REPAYMENT_STATUS = (
+        ('pending', 'Pending'),
+        ('paid', 'Paid'),
+        ('overdue', 'Overdue'),
+    )
+    
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     loan = models.ForeignKey(Loan, on_delete=models.CASCADE, related_name='repayments')
     amount = models.DecimalField(max_digits=12, decimal_places=2)
-    mpesa_receipt_number = models.CharField(max_length=20, unique=True)
-    phone_number = models.CharField(max_length=15)
-    transaction_date = models.DateTimeField()
-    recorded_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        db_table = 'repayments'
+    due_date = models.DateTimeField()
+    paid_date = models.DateTimeField(null=True, blank=True)
+    status = models.CharField(max_length=20, choices=REPAYMENT_STATUS, default='pending')
+    mpesa_receipt = models.CharField(max_length=50, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
     
     def __str__(self):
-        return f"Repayment #{self.mpesa_receipt_number}"
+        return f"Repayment {self.amount} for {self.loan}"
+
+class LoanApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    purpose = models.CharField(max_length=255)
+    term_days = models.IntegerField(default=30)
+    status = models.CharField(max_length=20, choices=Loan.LOAN_STATUS, default='pending')
+    applied_date = models.DateTimeField(auto_now_add=True)
+    
+    # Additional application data for ML scoring
+    business_age_months = models.IntegerField(default=0)
+    existing_loans_count = models.IntegerField(default=0)
+    average_monthly_sales = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    def __str__(self):
+        return f"Application {self.amount} by {self.user.phone_number}"
