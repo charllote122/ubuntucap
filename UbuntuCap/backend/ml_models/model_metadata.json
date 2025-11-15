@@ -1,0 +1,27 @@
+{
+  "model_name": "gradient_boosting",
+  "training_date": "2025-11-15T10:51:44.961310",
+  "features": [
+    "avg_monthly_volume",
+    "transaction_consistency",
+    "business_age_months",
+    "savings_ratio",
+    "loan_history_count",
+    "default_rate",
+    "mpesa_activity_score",
+    "customer_rating",
+    "transaction_count_30d",
+    "income_consistency_score",
+    "has_regular_income",
+    "negative_balance_days"
+  ],
+  "performance": {
+    "mae": 2.7355542268730644,
+    "mse": 11.79400605334136,
+    "r2": 0.8754599920833221,
+    "cv_mean": 0.8711311770997121,
+    "cv_std": 0.0034180282266083077
+  },
+  "dataset_size": 1000,
+  "use_synthetic": true
+}
