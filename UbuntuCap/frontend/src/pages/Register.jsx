@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
+import { User, Mail, Phone, Building, MapPin, Lock, ArrowRight, CheckCircle } from 'lucide-react';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ function Register() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false); // Add success state
+  const [success, setSuccess] = useState(false);
   
   const { register } = useAuth();
   const navigate = useNavigate();
@@ -88,156 +89,278 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-ubuntu-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Create your account
+        {/* Header */}
+        <div className="text-center">
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-ubuntu-green-light rounded-full mb-4">
+            <User className="w-10 h-10 text-ubuntu-green" />
+          </div>
+          <h2 className="text-3xl font-bold text-ubuntu-gray-900">
+            Join UbuntuCap
           </h2>
+          <p className="mt-2 text-ubuntu-gray-600">
+            Create your account and start growing your business
+          </p>
         </div>
         
         {/* Success Message */}
         {success && (
-          <div className="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
-            ✅ Registration successful! Redirecting to login...
+          <div className="bg-ubuntu-green-lighter border border-ubuntu-green-light text-ubuntu-green-dark px-4 py-3 rounded-lg flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            Registration successful! Redirecting to login...
           </div>
         )}
         
         {/* Error Message */}
         {error && !success && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          <div className="bg-ubuntu-red-light border border-ubuntu-red text-ubuntu-red px-4 py-3 rounded-lg flex items-center">
+            <div className="w-2 h-2 bg-ubuntu-red rounded-full mr-3"></div>
             {error}
           </div>
         )}
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <input
-                name="firstName"
-                type="text"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="First Name"
-                value={formData.firstName}
-                onChange={handleChange}
-              />
+          {/* Personal Information */}
+          <div className="bg-white p-6 rounded-xl border border-ubuntu-gray-200">
+            <h3 className="text-lg font-semibold text-ubuntu-gray-900 mb-4 flex items-center">
+              <User className="w-5 h-5 mr-2 text-ubuntu-green" />
+              Personal Information
+            </h3>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  First Name
+                </label>
+                <input
+                  name="firstName"
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  placeholder="John"
+                  value={formData.firstName}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  Last Name
+                </label>
+                <input
+                  name="lastName"
+                  type="text"
+                  required
+                  className="w-full px-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  placeholder="Doe"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
-            <div>
-              <input
-                name="lastName"
-                type="text"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Last Name"
-                value={formData.lastName}
-                onChange={handleChange}
-              />
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                Phone Number
+              </label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                <input
+                  name="phone"
+                  type="tel"
+                  required
+                  className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  placeholder="+254712345678"
+                  value={formData.phone}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <input
-              name="phone"
-              type="tel"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Phone Number (e.g., +1234567890)"
-              value={formData.phone}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <input
-              name="email"
-              type="email"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Email Address"
-              value={formData.email}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div>
-            <input
-              name="businessName"
-              type="text"
-              required
-              className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-              placeholder="Business Name"
-              value={formData.businessName}
-              onChange={handleChange}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <input
-                name="businessType"
-                type="text"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Business Type"
-                value={formData.businessType}
-                onChange={handleChange}
-              />
-            </div>
-            <div>
-              <input
-                name="businessLocation"
-                type="text"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Location"
-                value={formData.businessLocation}
-                onChange={handleChange}
-              />
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                Email Address
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                <input
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <input
-                name="password"
-                type="password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-              />
+          {/* Business Information */}
+          <div className="bg-white p-6 rounded-xl border border-ubuntu-gray-200">
+            <h3 className="text-lg font-semibold text-ubuntu-gray-900 mb-4 flex items-center">
+              <Building className="w-5 h-5 mr-2 text-ubuntu-green" />
+              Business Information
+            </h3>
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                Business Name
+              </label>
+              <div className="relative">
+                <Building className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                <input
+                  name="businessName"
+                  type="text"
+                  required
+                  className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  placeholder="Fresh Produce Ltd"
+                  value={formData.businessName}
+                  onChange={handleChange}
+                />
+              </div>
             </div>
-            <div>
-              <input
-                name="confirmPassword"
-                type="password"
-                required
-                className="appearance-none rounded relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-              />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  Business Type
+                </label>
+                <select
+                  name="businessType"
+                  required
+                  className="w-full px-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                  value={formData.businessType}
+                  onChange={handleChange}
+                >
+                  <option value="">Select Type</option>
+                  <option value="Retail">Retail</option>
+                  <option value="Wholesale">Wholesale</option>
+                  <option value="Service">Service</option>
+                  <option value="Manufacturing">Manufacturing</option>
+                  <option value="Agriculture">Agriculture</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  Location
+                </label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                  <input
+                    name="businessLocation"
+                    type="text"
+                    required
+                    className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                    placeholder="Nairobi, Kenya"
+                    value={formData.businessLocation}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
+          {/* Password Section */}
+          <div className="bg-white p-6 rounded-xl border border-ubuntu-gray-200">
+            <h3 className="text-lg font-semibold text-ubuntu-gray-900 mb-4 flex items-center">
+              <Lock className="w-5 h-5 mr-2 text-ubuntu-green" />
+              Security
+            </h3>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                  <input
+                    name="password"
+                    type="password"
+                    required
+                    className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                    placeholder="••••••••"
+                    value={formData.password}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-ubuntu-gray-700 mb-1">
+                  Confirm Password
+                </label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
+                  <input
+                    name="confirmPassword"
+                    type="password"
+                    required
+                    className="w-full pl-10 pr-3 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors"
+                    placeholder="••••••••"
+                    value={formData.confirmPassword}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
           <div>
             <button
               type="submit"
               disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+              className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-ubuntu-green hover:bg-ubuntu-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ubuntu-green disabled:opacity-50 transition-colors shadow-sm hover:shadow-md"
             >
-              {loading ? 'Creating Account...' : 'Create Account'}
+              {loading ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating Account...
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  Create Account
+                  <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                </div>
+              )}
             </button>
           </div>
 
+          {/* Login Link */}
           <div className="text-center">
-            <Link to="/login" className="text-blue-600 hover:text-blue-500">
+            <Link 
+              to="/login" 
+              className="text-ubuntu-green hover:text-ubuntu-green-dark font-medium transition-colors"
+            >
               Already have an account? Sign in
             </Link>
           </div>
         </form>
+
+        {/* Benefits Section */}
+        <div className="bg-ubuntu-green-lighter rounded-xl p-6 border border-ubuntu-green-light">
+          <h4 className="font-semibold text-ubuntu-green-dark mb-3">Why Join UbuntuCap?</h4>
+          <ul className="space-y-2 text-sm text-ubuntu-green-dark">
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+              Quick loan approvals in 24 hours
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+              No collateral required
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+              Access via USSD and mobile app
+            </li>
+            <li className="flex items-start">
+              <CheckCircle className="w-4 h-4 mr-2 mt-0.5 flex-shrink-0" />
+              Build your credit score
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
   );

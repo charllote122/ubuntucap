@@ -115,31 +115,31 @@ const Dashboard = () => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star 
         key={i} 
-        className={`h-4 w-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`} 
+        className={`h-4 w-4 ${i < rating ? 'text-yellow-400 fill-current' : 'text-ubuntu-gray-300'}`} 
       />
     ))
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-blue-50 to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-ubuntu-green-lighter via-ubuntu-blue-light to-ubuntu-purple-light">
       <Header />
       
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-28">
         <div className="text-center">
-          <div className="inline-flex items-center px-4 py-2 rounded-full bg-ubuntu-green-light text-ubuntu-green text-sm font-medium mb-6">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-ubuntu-green-light text-ubuntu-green-dark text-sm font-medium mb-6">
             <Zap className="h-4 w-4 mr-2" />
             Financing Africa's Economic Engine
           </div>
           
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-6 leading-tight">
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-ubuntu-gray-900 mb-6 leading-tight">
             Capital for the{' '}
             <span className="text-ubuntu-green bg-gradient-to-r from-ubuntu-green to-ubuntu-green-dark bg-clip-text text-transparent">
               Underserved
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-ubuntu-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
             Get quick, accessible loans for your small business. No collateral needed. 
             Built on the philosophy of Ubuntu - <em>"I am because we are."</em>
           </p>
@@ -161,11 +161,11 @@ const Dashboard = () => {
           </div>
 
           {/* USSD Callout */}
-          <div className="bg-gray-900 rounded-2xl p-6 max-w-md mx-auto">
+          <div className="bg-ubuntu-gray-800 rounded-2xl p-6 max-w-md mx-auto">
             <div className="text-center text-white">
               <CreditCard className="h-8 w-8 mx-auto mb-3" />
               <p className="font-mono text-lg mb-2">*384*12345#</p>
-              <p className="text-gray-300 text-sm">Use this USSD code on any phone</p>
+              <p className="text-ubuntu-gray-300 text-sm">Use this USSD code on any phone</p>
               <p className="text-ubuntu-green-light text-xs mt-2">No smartphone? No problem!</p>
             </div>
           </div>
@@ -173,7 +173,7 @@ const Dashboard = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-white py-16 border-y border-gray-200">
+      <section className="bg-white py-16 border-y border-ubuntu-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <StatsCard 
@@ -203,10 +203,10 @@ const Dashboard = () => {
       {/* Features Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-ubuntu-gray-900 mb-4">
             Designed for African Entrepreneurs
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-ubuntu-gray-600 max-w-2xl mx-auto">
             We've built UbuntuCap specifically to address the unique challenges faced by small businesses in Africa
           </p>
         </div>
@@ -215,16 +215,16 @@ const Dashboard = () => {
           {features.map((feature, index) => (
             <div 
               key={index} 
-              className="group bg-white p-8 rounded-2xl shadow-sm border border-gray-200 hover:shadow-xl transition-all duration-300 hover:border-ubuntu-green-light"
+              className="group bg-white p-8 rounded-2xl shadow-sm border border-ubuntu-gray-200 hover:shadow-xl transition-all duration-300 hover:border-ubuntu-green-light"
             >
               <div className="w-14 h-14 bg-ubuntu-green-light rounded-xl flex items-center justify-center mb-6 text-ubuntu-green group-hover:scale-110 transition-transform duration-300">
                 {feature.icon}
               </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-              <p className="text-gray-600 mb-4 leading-relaxed">{feature.description}</p>
+              <h3 className="text-xl font-bold text-ubuntu-gray-900 mb-3">{feature.title}</h3>
+              <p className="text-ubuntu-gray-600 mb-4 leading-relaxed">{feature.description}</p>
               <ul className="space-y-2">
                 {feature.benefits.map((benefit, idx) => (
-                  <li key={idx} className="flex items-center text-sm text-gray-500">
+                  <li key={idx} className="flex items-center text-sm text-ubuntu-gray-500">
                     <CheckCircle className="h-4 w-4 text-ubuntu-green mr-2" />
                     {benefit}
                   </li>
@@ -236,13 +236,13 @@ const Dashboard = () => {
       </section>
 
       {/* How It Works */}
-      <section className="bg-gray-50 py-20">
+      <section className="bg-ubuntu-gray-50 py-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-ubuntu-gray-900 mb-4">
               How UbuntuCap Works
             </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            <p className="text-lg text-ubuntu-gray-600 max-w-2xl mx-auto">
               Getting funding for your business has never been easier
             </p>
           </div>
@@ -251,7 +251,7 @@ const Dashboard = () => {
             {howItWorks.map((step, index) => (
               <div key={index} className="text-center group">
                 <div className="relative mb-6">
-                  <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-gray-200 flex items-center justify-center mx-auto group-hover:shadow-lg transition-shadow duration-300">
+                  <div className="w-20 h-20 bg-white rounded-2xl shadow-sm border border-ubuntu-gray-200 flex items-center justify-center mx-auto group-hover:shadow-lg transition-shadow duration-300">
                     <div className="w-12 h-12 bg-ubuntu-green-light rounded-lg flex items-center justify-center text-ubuntu-green">
                       {step.icon}
                     </div>
@@ -260,8 +260,8 @@ const Dashboard = () => {
                     {step.step}
                   </div>
                 </div>
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-gray-600">{step.description}</p>
+                <h3 className="text-xl font-semibold text-ubuntu-gray-900 mb-2">{step.title}</h3>
+                <p className="text-ubuntu-gray-600">{step.description}</p>
               </div>
             ))}
           </div>
@@ -271,24 +271,24 @@ const Dashboard = () => {
       {/* Testimonials */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <div className="text-center mb-16">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+          <h2 className="text-3xl md:text-4xl font-bold text-ubuntu-gray-900 mb-4">
             Success Stories
           </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          <p className="text-lg text-ubuntu-gray-600 max-w-2xl mx-auto">
             Hear from entrepreneurs who have transformed their businesses with UbuntuCap
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="bg-white p-8 rounded-2xl shadow-sm border border-gray-200">
+            <div key={index} className="bg-white p-8 rounded-2xl shadow-sm border border-ubuntu-gray-200">
               <div className="flex items-center mb-4">
                 {renderStars(testimonial.rating)}
               </div>
-              <p className="text-gray-600 italic mb-6">"{testimonial.testimonial}"</p>
-              <div className="border-t pt-4">
-                <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                <p className="text-sm text-gray-600">{testimonial.business}</p>
+              <p className="text-ubuntu-gray-600 italic mb-6">"{testimonial.testimonial}"</p>
+              <div className="border-t border-ubuntu-gray-200 pt-4">
+                <p className="font-semibold text-ubuntu-gray-900">{testimonial.name}</p>
+                <p className="text-sm text-ubuntu-gray-600">{testimonial.business}</p>
                 <p className="text-sm text-ubuntu-green">{testimonial.location}</p>
               </div>
             </div>
@@ -302,13 +302,13 @@ const Dashboard = () => {
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
             Start Your Business Journey Today
           </h2>
-          <p className="text-xl text-green-100 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl text-ubuntu-green-light mb-8 max-w-2xl mx-auto">
             Join thousands of African entrepreneurs building their dreams with UbuntuCap
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <a 
               href="/register" 
-              className="bg-white text-ubuntu-green px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-100 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1"
+              className="bg-white text-ubuntu-green px-8 py-4 rounded-lg text-lg font-semibold hover:bg-ubuntu-gray-100 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1"
             >
               Get Started Free
             </a>
@@ -319,7 +319,7 @@ const Dashboard = () => {
               Calculate Your Loan
             </a>
           </div>
-          <p className="text-green-200 text-sm mt-6">
+          <p className="text-ubuntu-green-lighter text-sm mt-6">
             No credit card required • No hidden fees • Cancel anytime
           </p>
         </div>

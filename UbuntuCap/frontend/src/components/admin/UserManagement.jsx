@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { adminService } from '../../services/adminService';
-import { Eye, Search, Download, UserX, UserCheck, AlertCircle, Users, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Eye, Search, Download, UserX, UserCheck, AlertCircle, Users, ChevronLeft, ChevronRight, Shield, CreditCard, Building } from 'lucide-react';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -133,160 +133,171 @@ const UserManagement = () => {
 
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-        <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-          <div className="p-6 border-b border-gray-200">
+        <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="p-6 border-b border-ubuntu-gray-200">
             <div className="flex justify-between items-center">
-              <h3 className="text-xl font-semibold text-gray-900">User Details</h3>
+              <h3 className="text-2xl font-bold text-ubuntu-gray-900">User Details</h3>
               <button
                 onClick={onClose}
-                className="text-gray-400 hover:text-gray-600 text-2xl"
+                className="text-ubuntu-gray-400 hover:text-ubuntu-gray-600 text-2xl transition-colors"
               >
                 ✕
               </button>
             </div>
           </div>
           
-          <div className="p-6 space-y-6">
+          <div className="p-6 space-y-8">
             {/* User Basic Info */}
-            <div className="flex items-start space-x-4">
-              <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-blue-600 font-semibold text-lg">
+            <div className="flex items-start space-x-6">
+              <div className="w-20 h-20 bg-ubuntu-green-light rounded-full flex items-center justify-center flex-shrink-0">
+                <span className="text-ubuntu-green font-bold text-xl">
                   {user.first_name?.[0]}{user.last_name?.[0]}
                 </span>
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-lg font-semibold text-gray-900 truncate">
+                <h4 className="text-xl font-bold text-ubuntu-gray-900">
                   {user.first_name} {user.last_name}
                 </h4>
-                <p className="text-gray-600 truncate">{user.email}</p>
-                <p className="text-gray-500">{user.phone_number}</p>
+                <p className="text-ubuntu-gray-600">{user.email}</p>
+                <p className="text-ubuntu-gray-500">{user.phone_number}</p>
               </div>
-              <div className="flex flex-col space-y-2 flex-shrink-0">
-                <span className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full ${
+              <div className="flex flex-col space-y-3 flex-shrink-0">
+                <span className={`inline-flex px-4 py-2 text-sm font-semibold rounded-full ${
                   user.is_active 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
+                    ? 'bg-ubuntu-green-light text-ubuntu-green-dark' 
+                    : 'bg-ubuntu-red-light text-ubuntu-red'
                 }`}>
                   {user.is_active ? 'Active' : 'Inactive'}
                 </span>
                 <button
                   onClick={() => handleToggleVerification(user.id, user.is_verified)}
                   disabled={actionLoading === user.id}
-                  className={`inline-flex px-3 py-1 text-sm font-semibold rounded-full transition-colors ${
+                  className={`inline-flex items-center px-4 py-2 text-sm font-semibold rounded-full transition-colors ${
                     user.is_verified
-                      ? 'bg-blue-100 text-blue-800 hover:bg-blue-200'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                      ? 'bg-ubuntu-blue-light text-ubuntu-blue hover:bg-ubuntu-blue'
+                      : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
                   } disabled:opacity-50`}
                 >
                   {actionLoading === user.id ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></div>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
                   ) : (
-                    user.is_verified ? 'Verified' : 'Verify'
+                    <Shield className="h-4 w-4 mr-2" />
                   )}
+                  {user.is_verified ? 'Verified' : 'Verify'}
                 </button>
               </div>
             </div>
 
             {/* Business Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Business Information</h5>
-                <div className="space-y-2">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="bg-ubuntu-gray-50 rounded-xl p-6 border border-ubuntu-gray-200">
+                <h5 className="font-semibold text-ubuntu-gray-900 mb-4 flex items-center">
+                  <Building className="h-5 w-5 mr-2 text-ubuntu-green" />
+                  Business Information
+                </h5>
+                <div className="space-y-4">
                   <div>
-                    <span className="text-sm text-gray-600">Business Name:</span>
-                    <p className="font-medium">{user.business_name || 'Not provided'}</p>
+                    <span className="text-sm text-ubuntu-gray-600">Business Name:</span>
+                    <p className="font-medium text-ubuntu-gray-900">{user.business_name || 'Not provided'}</p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">Business Type:</span>
-                    <p className="font-medium">{user.business_type || 'Not provided'}</p>
+                    <span className="text-sm text-ubuntu-gray-600">Business Type:</span>
+                    <p className="font-medium text-ubuntu-gray-900">{user.business_type || 'Not provided'}</p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">Location:</span>
-                    <p className="font-medium">{user.business_location || 'Not provided'}</p>
+                    <span className="text-sm text-ubuntu-gray-600">Location:</span>
+                    <p className="font-medium text-ubuntu-gray-900">{user.business_location || 'Not provided'}</p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">Business Age:</span>
-                    <p className="font-medium">{user.business_age_months ? `${user.business_age_months} months` : 'Not provided'}</p>
+                    <span className="text-sm text-ubuntu-gray-600">Business Age:</span>
+                    <p className="font-medium text-ubuntu-gray-900">{user.business_age_months ? `${user.business_age_months} months` : 'Not provided'}</p>
                   </div>
                 </div>
               </div>
 
-              <div>
-                <h5 className="font-semibold text-gray-900 mb-3">Account Information</h5>
-                <div className="space-y-2">
+              <div className="bg-ubuntu-gray-50 rounded-xl p-6 border border-ubuntu-gray-200">
+                <h5 className="font-semibold text-ubuntu-gray-900 mb-4 flex items-center">
+                  <UserCheck className="h-5 w-5 mr-2 text-ubuntu-green" />
+                  Account Information
+                </h5>
+                <div className="space-y-4">
                   <div>
-                    <span className="text-sm text-gray-600">Member Since:</span>
-                    <p className="font-medium">
+                    <span className="text-sm text-ubuntu-gray-600">Member Since:</span>
+                    <p className="font-medium text-ubuntu-gray-900">
                       {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">Last Login:</span>
-                    <p className="font-medium">
+                    <span className="text-sm text-ubuntu-gray-600">Last Login:</span>
+                    <p className="font-medium text-ubuntu-gray-900">
                       {user.last_login ? new Date(user.last_login).toLocaleDateString() : 'Never'}
                     </p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">Credit Score:</span>
-                    <p className="font-medium">{user.credit_score || 'Not calculated'}</p>
+                    <span className="text-sm text-ubuntu-gray-600">Credit Score:</span>
+                    <p className="font-medium text-ubuntu-gray-900">{user.credit_score || 'Not calculated'}</p>
                   </div>
                   <div>
-                    <span className="text-sm text-gray-600">User ID:</span>
-                    <p className="font-medium font-mono text-xs">{user.id}</p>
+                    <span className="text-sm text-ubuntu-gray-600">User ID:</span>
+                    <p className="font-medium font-mono text-xs text-ubuntu-gray-900">{user.id}</p>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Loan History Summary */}
-            <div>
-              <h5 className="font-semibold text-gray-900 mb-3">Loan History</h5>
+            <div className="bg-ubuntu-green-lighter rounded-xl p-6 border border-ubuntu-green-light">
+              <h5 className="font-semibold text-ubuntu-green-dark mb-4 flex items-center">
+                <CreditCard className="h-5 w-5 mr-2" />
+                Loan History
+              </h5>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-lg font-bold text-blue-600">{user.total_loans || 0}</div>
-                  <div className="text-xs text-gray-600">Total Loans</div>
+                <div className="bg-white rounded-lg p-4 border border-ubuntu-green-light">
+                  <div className="text-xl font-bold text-ubuntu-green">{user.total_loans || 0}</div>
+                  <div className="text-xs text-ubuntu-gray-600">Total Loans</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-lg font-bold text-green-600">
+                <div className="bg-white rounded-lg p-4 border border-ubuntu-green-light">
+                  <div className="text-xl font-bold text-ubuntu-green">
                     KSh {user.total_borrowed ? user.total_borrowed.toLocaleString() : 0}
                   </div>
-                  <div className="text-xs text-gray-600">Total Borrowed</div>
+                  <div className="text-xs text-ubuntu-gray-600">Total Borrowed</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-lg font-bold text-purple-600">
+                <div className="bg-white rounded-lg p-4 border border-ubuntu-green-light">
+                  <div className="text-xl font-bold text-ubuntu-green">
                     KSh {user.total_repaid ? user.total_repaid.toLocaleString() : 0}
                   </div>
-                  <div className="text-xs text-gray-600">Total Repaid</div>
+                  <div className="text-xs text-ubuntu-gray-600">Total Repaid</div>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <div className="text-lg font-bold text-orange-600">
+                <div className="bg-white rounded-lg p-4 border border-ubuntu-green-light">
+                  <div className="text-xl font-bold text-ubuntu-green">
                     {user.repayment_rate || 0}%
                   </div>
-                  <div className="text-xs text-gray-600">Repayment Rate</div>
+                  <div className="text-xs text-ubuntu-gray-600">Repayment Rate</div>
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="p-6 border-t border-gray-200 flex justify-end space-x-3">
+          <div className="p-6 border-t border-ubuntu-gray-200 flex justify-end space-x-4">
             <button
               onClick={() => handleToggleUserStatus(user.id, user.is_active)}
               disabled={actionLoading === user.id}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+              className={`px-6 py-3 rounded-xl font-semibold transition-colors flex items-center ${
                 user.is_active
-                  ? 'bg-red-600 text-white hover:bg-red-700'
-                  : 'bg-green-600 text-white hover:bg-green-700'
+                  ? 'bg-ubuntu-red text-white hover:bg-ubuntu-red-dark'
+                  : 'bg-ubuntu-green text-white hover:bg-ubuntu-green-dark'
               } disabled:opacity-50`}
             >
               {actionLoading === user.id ? (
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
               ) : (
-                user.is_active ? 'Deactivate User' : 'Activate User'
+                user.is_active ? <UserX className="h-5 w-5 mr-2" /> : <UserCheck className="h-5 w-5 mr-2" />
               )}
+              {user.is_active ? 'Deactivate User' : 'Activate User'}
             </button>
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+              className="px-6 py-3 border border-ubuntu-gray-300 text-ubuntu-gray-700 rounded-xl hover:bg-ubuntu-gray-50 transition-colors font-semibold"
             >
               Close
             </button>
@@ -313,10 +324,10 @@ const UserManagement = () => {
         <button
           key={i}
           onClick={() => handlePageChange(i)}
-          className={`px-3 py-1 rounded-lg text-sm font-medium ${
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             pagination.current === i
-              ? 'bg-blue-600 text-white'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-ubuntu-green text-white'
+              : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
           }`}
         >
           {i}
@@ -325,8 +336,8 @@ const UserManagement = () => {
     }
 
     return (
-      <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200">
-        <div className="text-sm text-gray-700">
+      <div className="flex items-center justify-between px-6 py-4 border-t border-ubuntu-gray-200">
+        <div className="text-sm text-ubuntu-gray-700">
           Showing {((pagination.current - 1) * pagination.pageSize) + 1} to{' '}
           {Math.min(pagination.current * pagination.pageSize, pagination.total)} of{' '}
           {pagination.total} users
@@ -335,7 +346,7 @@ const UserManagement = () => {
           <button
             onClick={() => handlePageChange(pagination.current - 1)}
             disabled={pagination.current === 1}
-            className="p-1 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            className="p-2 rounded-lg border border-ubuntu-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ubuntu-gray-50 transition-colors"
           >
             <ChevronLeft className="h-4 w-4" />
           </button>
@@ -343,7 +354,7 @@ const UserManagement = () => {
           <button
             onClick={() => handlePageChange(pagination.current + 1)}
             disabled={pagination.current === pagination.totalPages}
-            className="p-1 rounded-lg border border-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+            className="p-2 rounded-lg border border-ubuntu-gray-300 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-ubuntu-gray-50 transition-colors"
           >
             <ChevronRight className="h-4 w-4" />
           </button>
@@ -356,34 +367,34 @@ const UserManagement = () => {
     <div>
       {/* Error Display */}
       {error && (
-        <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+        <div className="mb-6 bg-ubuntu-red-light border border-ubuntu-red text-ubuntu-red px-4 py-3 rounded-lg flex items-center">
           <AlertCircle className="h-5 w-5 mr-2 flex-shrink-0" />
-          <span>{error}</span>
+          <span className="font-medium">{error}</span>
         </div>
       )}
 
       {/* Header with Search and Filters */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6 space-y-4 lg:space-y-0">
         <div>
-          <h3 className="text-xl font-semibold text-gray-900">User Management</h3>
-          <p className="text-gray-600">Manage and monitor platform users</p>
+          <h3 className="text-2xl font-bold text-ubuntu-gray-900">User Management</h3>
+          <p className="text-ubuntu-gray-600">Manage and monitor platform users</p>
         </div>
         
         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 w-full lg:w-auto">
           <form onSubmit={handleSearchSubmit} className="flex space-x-2">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-ubuntu-gray-400 h-4 w-4" />
               <input
                 type="text"
                 placeholder="Search by name, email, or phone..."
                 value={searchTerm}
                 onChange={handleSearch}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64"
+                className="pl-10 pr-4 py-2 border border-ubuntu-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green w-full sm:w-64 transition-colors"
               />
             </div>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center transition-colors"
+              className="px-4 py-2 bg-ubuntu-green text-white rounded-lg hover:bg-ubuntu-green-dark flex items-center transition-colors font-semibold"
             >
               <Search className="h-4 w-4 mr-2" />
               Search
@@ -392,7 +403,7 @@ const UserManagement = () => {
           
           <button
             onClick={handleExportUsers}
-            className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center transition-colors"
+            className="px-4 py-2 border border-ubuntu-gray-300 text-ubuntu-gray-700 rounded-lg hover:bg-ubuntu-gray-50 flex items-center transition-colors font-semibold"
           >
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -404,40 +415,40 @@ const UserManagement = () => {
       <div className="flex flex-wrap gap-2 mb-6">
         <button
           onClick={() => handleStatusFilter('all')}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             statusFilter === 'all'
-              ? 'bg-blue-100 text-blue-800'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-ubuntu-green text-white'
+              : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
           }`}
         >
           All Users
         </button>
         <button
           onClick={() => handleStatusFilter('active')}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             statusFilter === 'active'
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-ubuntu-green text-white'
+              : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
           }`}
         >
           Active
         </button>
         <button
           onClick={() => handleStatusFilter('inactive')}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             statusFilter === 'inactive'
-              ? 'bg-red-100 text-red-800'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-ubuntu-red text-white'
+              : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
           }`}
         >
           Inactive
         </button>
         <button
           onClick={() => handleStatusFilter('verified')}
-          className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
             statusFilter === 'verified'
-              ? 'bg-purple-100 text-purple-800'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              ? 'bg-ubuntu-blue text-white'
+              : 'bg-ubuntu-gray-100 text-ubuntu-gray-700 hover:bg-ubuntu-gray-200'
           }`}
         >
           Verified
@@ -445,16 +456,16 @@ const UserManagement = () => {
       </div>
 
       {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-lg border border-ubuntu-gray-200 overflow-hidden">
         {loading ? (
           <div className="flex justify-center items-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ubuntu-green"></div>
           </div>
         ) : users.length === 0 ? (
           <div className="text-center py-12">
-            <Users className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-500">No users found</p>
-            <p className="text-sm text-gray-400 mt-1">
+            <Users className="h-16 w-16 text-ubuntu-gray-300 mx-auto mb-4" />
+            <p className="text-ubuntu-gray-500 text-lg">No users found</p>
+            <p className="text-ubuntu-gray-400 mt-1">
               {searchTerm || statusFilter !== 'all' 
                 ? 'Try adjusting your search or filters' 
                 : 'No users in the system yet'
@@ -464,79 +475,79 @@ const UserManagement = () => {
         ) : (
           <>
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-ubuntu-gray-200">
+                <thead className="bg-ubuntu-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       Contact
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       Business
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       Member Since
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 text-left text-sm font-semibold text-ubuntu-gray-900 uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-ubuntu-gray-200">
                   {users.map((user) => (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
+                    <tr key={user.id} className="hover:bg-ubuntu-gray-50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-blue-600 font-semibold">
+                          <div className="flex-shrink-0 h-12 w-12 bg-ubuntu-green-light rounded-full flex items-center justify-center">
+                            <span className="text-ubuntu-green font-semibold text-sm">
                               {user.first_name?.[0]}{user.last_name?.[0]}
                             </span>
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-semibold text-ubuntu-gray-900">
                               {user.first_name} {user.last_name}
                             </div>
-                            <div className="text-sm text-gray-500">ID: {user.id.slice(0, 8)}...</div>
+                            <div className="text-sm text-ubuntu-gray-500">ID: {user.id.slice(0, 8)}...</div>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{user.phone_number}</div>
-                        <div className="text-sm text-gray-500 truncate max-w-xs">{user.email}</div>
+                        <div className="text-sm text-ubuntu-gray-900">{user.phone_number}</div>
+                        <div className="text-sm text-ubuntu-gray-500 truncate max-w-xs">{user.email}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{user.business_name || 'N/A'}</div>
-                        <div className="text-sm text-gray-500">{user.business_type || 'Not specified'}</div>
+                        <div className="text-sm text-ubuntu-gray-900">{user.business_name || 'N/A'}</div>
+                        <div className="text-sm text-ubuntu-gray-500">{user.business_type || 'Not specified'}</div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex flex-col space-y-1">
-                          <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                        <div className="flex flex-col space-y-2">
+                          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${
                             user.is_active 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
+                              ? 'bg-ubuntu-green-light text-ubuntu-green-dark' 
+                              : 'bg-ubuntu-red-light text-ubuntu-red'
                           }`}>
                             {user.is_active ? 'Active' : 'Inactive'}
                           </span>
                           {user.is_verified && (
-                            <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">
+                            <span className="inline-flex px-3 py-1 text-xs font-semibold rounded-full bg-ubuntu-blue-light text-ubuntu-blue">
                               Verified
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-ubuntu-gray-900">
                         {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <div className="flex items-center space-x-2">
+                        <div className="flex items-center space-x-3">
                           <button
                             onClick={() => handleViewUser(user)}
-                            className="text-blue-600 hover:text-blue-900 flex items-center transition-colors"
+                            className="text-ubuntu-green hover:text-ubuntu-green-dark flex items-center transition-colors p-2 rounded-lg hover:bg-ubuntu-green-light"
                             title="View Details"
                           >
                             <Eye className="h-4 w-4" />
@@ -544,11 +555,11 @@ const UserManagement = () => {
                           <button
                             onClick={() => handleToggleUserStatus(user.id, user.is_active)}
                             disabled={actionLoading === user.id}
-                            className={`${
+                            className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
                               user.is_active 
-                                ? 'text-red-600 hover:text-red-900' 
-                                : 'text-green-600 hover:text-green-900'
-                            } flex items-center transition-colors disabled:opacity-50`}
+                                ? 'text-ubuntu-red hover:text-ubuntu-red-dark hover:bg-ubuntu-red-light' 
+                                : 'text-ubuntu-green hover:text-ubuntu-green-dark hover:bg-ubuntu-green-light'
+                            }`}
                             title={user.is_active ? 'Deactivate' : 'Activate'}
                           >
                             {actionLoading === user.id ? (

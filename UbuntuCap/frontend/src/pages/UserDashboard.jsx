@@ -11,7 +11,11 @@ import {
   TrendingUp, 
   Calendar,
   AlertCircle,
-  ArrowRight
+  ArrowRight,
+  Users,
+  CreditCard,
+  Phone,
+  MessageCircle
 } from 'lucide-react'
 
 const UserDashboard = () => {
@@ -61,26 +65,26 @@ const UserDashboard = () => {
   const getStatusIcon = (status) => {
     switch (status) {
       case 'approved':
-        return <CheckCircle className="h-5 w-5 text-green-500" />
+        return <CheckCircle className="h-5 w-5 text-ubuntu-green" />
       case 'pending':
-        return <Clock className="h-5 w-5 text-yellow-500" />
+        return <Clock className="h-5 w-5 text-ubuntu-orange" />
       case 'rejected':
-        return <XCircle className="h-5 w-5 text-red-500" />
+        return <XCircle className="h-5 w-5 text-ubuntu-red" />
       default:
-        return <Clock className="h-5 w-5 text-gray-500" />
+        return <Clock className="h-5 w-5 text-ubuntu-gray-400" />
     }
   }
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'approved':
-        return 'bg-green-100 text-green-800'
+        return 'bg-ubuntu-green-light text-ubuntu-green-dark'
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800'
+        return 'bg-ubuntu-orange-light text-ubuntu-orange'
       case 'rejected':
-        return 'bg-red-100 text-red-800'
+        return 'bg-ubuntu-red-light text-ubuntu-red'
       default:
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-ubuntu-gray-100 text-ubuntu-gray-600'
     }
   }
 
@@ -90,23 +94,23 @@ const UserDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-ubuntu-gray-50">
         <Header />
         <div className="flex items-center justify-center min-h-96">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-ubuntu-green"></div>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-ubuntu-gray-50">
       <Header />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Error Display */}
         {error && (
-          <div className="mb-6 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg flex items-center">
+          <div className="mb-6 bg-ubuntu-red-light border border-ubuntu-red text-ubuntu-red px-4 py-3 rounded-lg flex items-center">
             <AlertCircle className="h-5 w-5 mr-2" />
             {error}
           </div>
@@ -114,56 +118,56 @@ const UserDashboard = () => {
 
         {/* Welcome Section */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-          <p className="text-gray-600">Welcome back! Here's your financial overview.</p>
+          <h1 className="text-3xl font-bold text-ubuntu-gray-900">Dashboard</h1>
+          <p className="text-ubuntu-gray-600 text-lg">Welcome back! Here's your financial overview.</p>
         </div>
 
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-ubuntu-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <DollarSign className="h-6 w-6 text-blue-600" />
+              <div className="p-2 bg-ubuntu-green-light rounded-lg">
+                <DollarSign className="h-6 w-6 text-ubuntu-green" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Loans</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.totalLoans}</p>
+                <p className="text-sm font-medium text-ubuntu-gray-600">Total Loans</p>
+                <p className="text-2xl font-bold text-ubuntu-gray-900">{stats.totalLoans}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-ubuntu-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-green-600" />
+              <div className="p-2 bg-ubuntu-blue-light rounded-lg">
+                <TrendingUp className="h-6 w-6 text-ubuntu-blue" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Active Loans</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.activeLoans}</p>
+                <p className="text-sm font-medium text-ubuntu-gray-600">Active Loans</p>
+                <p className="text-2xl font-bold text-ubuntu-gray-900">{stats.activeLoans}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-ubuntu-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center">
-              <div className="p-2 bg-purple-100 rounded-lg">
-                <DollarSign className="h-6 w-6 text-purple-600" />
+              <div className="p-2 bg-ubuntu-purple-light rounded-lg">
+                <CreditCard className="h-6 w-6 text-ubuntu-purple" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Borrowed</p>
-                <p className="text-2xl font-bold text-gray-900">{formatCurrency(stats.totalBorrowed)}</p>
+                <p className="text-sm font-medium text-ubuntu-gray-600">Total Borrowed</p>
+                <p className="text-2xl font-bold text-ubuntu-gray-900">{formatCurrency(stats.totalBorrowed)}</p>
               </div>
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-ubuntu-gray-200 hover:shadow-md transition-shadow">
             <div className="flex items-center">
-              <div className="p-2 bg-orange-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-orange-600" />
+              <div className="p-2 bg-ubuntu-orange-light rounded-lg">
+                <Users className="h-6 w-6 text-ubuntu-orange" />
               </div>
               <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Credit Score</p>
-                <p className="text-2xl font-bold text-gray-900">{stats.creditScore}</p>
+                <p className="text-sm font-medium text-ubuntu-gray-600">Credit Score</p>
+                <p className="text-2xl font-bold text-ubuntu-gray-900">{stats.creditScore}</p>
               </div>
             </div>
           </div>
@@ -173,13 +177,13 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Loans Section */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-              <div className="p-6 border-b border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm border border-ubuntu-gray-200">
+              <div className="p-6 border-b border-ubuntu-gray-200">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-xl font-semibold text-gray-900">My Loans</h2>
+                  <h2 className="text-xl font-semibold text-ubuntu-gray-900">My Loans</h2>
                   <Link
                     to="/apply"
-                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center"
+                    className="bg-ubuntu-green text-white px-4 py-2 rounded-lg hover:bg-ubuntu-green-dark transition-colors flex items-center shadow-sm hover:shadow-md"
                   >
                     <Plus className="h-4 w-4 mr-2" />
                     Apply for Loan
@@ -190,12 +194,12 @@ const UserDashboard = () => {
               <div className="p-6">
                 {loans.length === 0 ? (
                   <div className="text-center py-8">
-                    <DollarSign className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500">No loans yet</p>
-                    <p className="text-sm text-gray-400 mt-1">Get started by applying for your first loan</p>
+                    <DollarSign className="h-12 w-12 text-ubuntu-gray-300 mx-auto mb-3" />
+                    <p className="text-ubuntu-gray-500 text-lg">No loans yet</p>
+                    <p className="text-ubuntu-gray-400 mt-1">Get started by applying for your first loan</p>
                     <Link
                       to="/apply"
-                      className="inline-block mt-4 bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                      className="inline-block mt-4 bg-ubuntu-green text-white px-6 py-3 rounded-lg hover:bg-ubuntu-green-dark transition-colors font-semibold"
                     >
                       Apply Now
                     </Link>
@@ -203,31 +207,37 @@ const UserDashboard = () => {
                 ) : (
                   <div className="space-y-4">
                     {loans.slice(0, 5).map((loan) => (
-                      <div key={loan.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <div key={loan.id} className="flex items-center justify-between p-4 border border-ubuntu-gray-200 rounded-lg hover:bg-ubuntu-gray-50 transition-colors group">
                         <div className="flex items-center space-x-4">
                           {getStatusIcon(loan.status)}
                           <div>
-                            <p className="font-medium text-gray-900">{formatCurrency(loan.amount)}</p>
-                            <p className="text-sm text-gray-600">{loan.purpose}</p>
+                            <p className="font-semibold text-ubuntu-gray-900 text-lg">{formatCurrency(loan.amount)}</p>
+                            <p className="text-ubuntu-gray-600">{loan.purpose}</p>
+                            <p className="text-sm text-ubuntu-gray-500">
+                              Applied on {new Date(loan.created_at).toLocaleDateString()}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-4">
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(loan.status)}`}>
+                          <span className={`px-3 py-1 text-sm font-semibold rounded-full ${getStatusColor(loan.status)}`}>
                             {loan.status.charAt(0).toUpperCase() + loan.status.slice(1)}
                           </span>
                           <button
                             onClick={() => navigate(`/loans/${loan.id}`)}
-                            className="text-blue-600 hover:text-blue-700 transition-colors"
+                            className="text-ubuntu-green hover:text-ubuntu-green-dark transition-colors opacity-0 group-hover:opacity-100"
                           >
-                            <ArrowRight className="h-4 w-4" />
+                            <ArrowRight className="h-5 w-5" />
                           </button>
                         </div>
                       </div>
                     ))}
                     {loans.length > 5 && (
-                      <button className="w-full text-center text-blue-600 hover:text-blue-700 py-2 transition-colors">
+                      <Link
+                        to="/loans"
+                        className="block w-full text-center text-ubuntu-green hover:text-ubuntu-green-dark py-3 transition-colors font-semibold border-t border-ubuntu-gray-200 pt-4"
+                      >
                         View All Loans
-                      </button>
+                      </Link>
                     )}
                   </div>
                 )}
@@ -238,24 +248,24 @@ const UserDashboard = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Quick Actions */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Quick Actions</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-ubuntu-gray-200 p-6">
+              <h3 className="font-semibold text-ubuntu-gray-900 mb-4 text-lg">Quick Actions</h3>
               <div className="space-y-3">
                 <Link
                   to="/apply"
-                  className="block w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors text-center font-medium"
+                  className="block w-full bg-ubuntu-green text-white py-3 px-4 rounded-lg hover:bg-ubuntu-green-dark transition-colors text-center font-semibold shadow-sm hover:shadow-md"
                 >
                   Apply for Loan
                 </Link>
                 <Link
                   to="/calculator"
-                  className="block w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium"
+                  className="block w-full border border-ubuntu-gray-300 text-ubuntu-gray-700 py-3 px-4 rounded-lg hover:bg-ubuntu-gray-50 transition-colors text-center font-medium"
                 >
                   Loan Calculator
                 </Link>
                 <Link
                   to="/profile"
-                  className="block w-full border border-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-50 transition-colors text-center font-medium"
+                  className="block w-full border border-ubuntu-gray-300 text-ubuntu-gray-700 py-3 px-4 rounded-lg hover:bg-ubuntu-gray-50 transition-colors text-center font-medium"
                 >
                   Update Profile
                 </Link>
@@ -263,39 +273,51 @@ const UserDashboard = () => {
             </div>
 
             {/* Credit Score */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h3 className="font-semibold text-gray-900 mb-4">Credit Score</h3>
+            <div className="bg-white rounded-xl shadow-sm border border-ubuntu-gray-200 p-6">
+              <h3 className="font-semibold text-ubuntu-gray-900 mb-4 text-lg">Credit Score</h3>
               <div className="text-center">
-                <div className="text-3xl font-bold text-gray-900 mb-2">{stats.creditScore}</div>
-                <div className="w-full bg-gray-200 rounded-full h-2 mb-2">
+                <div className="text-3xl font-bold text-ubuntu-gray-900 mb-2">{stats.creditScore}</div>
+                <div className="w-full bg-ubuntu-gray-200 rounded-full h-2 mb-3">
                   <div 
-                    className="bg-green-600 h-2 rounded-full transition-all duration-300"
+                    className="bg-ubuntu-green h-2 rounded-full transition-all duration-500"
                     style={{ width: `${(stats.creditScore / 850) * 100}%` }}
                   ></div>
                 </div>
-                <p className="text-sm text-gray-600">Good credit score</p>
+                <div className="flex justify-between text-xs text-ubuntu-gray-500 mb-2">
+                  <span>300</span>
+                  <span>850</span>
+                </div>
+                <p className="text-ubuntu-green font-semibold">Good credit score</p>
+                <p className="text-ubuntu-gray-600 text-sm mt-2">
+                  Timely repayments improve your score
+                </p>
               </div>
             </div>
 
             {/* Support Card */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
-              <h3 className="font-semibold text-blue-900 mb-2">Need Help?</h3>
-              <p className="text-blue-700 text-sm mb-4">
-                Our support team is here to help you with any questions.
+            <div className="bg-ubuntu-blue-light border border-ubuntu-blue-light rounded-xl p-6">
+              <h3 className="font-semibold text-ubuntu-blue mb-3 text-lg">Need Help?</h3>
+              <p className="text-ubuntu-blue text-sm mb-4">
+                Our support team is here to help you with any questions about your loans or account.
               </p>
-              <div className="space-y-2 text-sm text-blue-800">
+              <div className="space-y-3 text-ubuntu-blue">
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  Call: 0700 123 456
+                  <Phone className="h-4 w-4 mr-3" />
+                  <span>0700 123 456</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  WhatsApp: 0700 123 456
+                  <MessageCircle className="h-4 w-4 mr-3" />
+                  <span>WhatsApp: 0700 123 456</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                  USSD: *384*12345#
+                  <CreditCard className="h-4 w-4 mr-3" />
+                  <span>USSD: *384*12345#</span>
                 </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-ubuntu-blue">
+                <p className="text-ubuntu-blue text-xs">
+                  Available 24/7 for all your banking needs
+                </p>
               </div>
             </div>
           </div>
