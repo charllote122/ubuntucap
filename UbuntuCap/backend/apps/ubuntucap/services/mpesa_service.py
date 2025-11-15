@@ -4,7 +4,6 @@ from datetime import datetime, timedelta
 from django.conf import settings
 from django.utils import timezone
 import logging
-import json
 import random
 from decimal import Decimal
 
@@ -12,97 +11,241 @@ logger = logging.getLogger(__name__)
 
 class MpesaService:
     def __init__(self):
-        self.consumer_key = settings.MPESA_CONSUMER_KEY
-        self.consumer_secret = settings.MPESA_CONSUMER_SECRET
-        self.base_url = settings.MPESA_BASE_URL
-        self.business_shortcode = settings.MPESA_BUSINESS_SHORTCODE
-        self.passkey = settings.MPESA_PASSKEY
+        self.consumer_key = getattr(settings, 'MPESA_CONSUMER_KEY', 'test_key')
+        self.consumer_secret = getattr(settings, 'MPESA_CONSUMER_SECRET', 'test_secret')
+        self.base_url = getattr(settings, 'MPESA_BASE_URL', 'https://sandbox.safaricom.co.ke')
     
     def get_access_token(self):
-        """Get OAuth token from M-Pesa using settings"""
+        """Get OAuth token from M-Pesa"""
         try:
-            # For production, use actual M-Pesa OAuth
-            if settings.MPESA_ENVIRONMENT == 'production':
-                auth_string = f"{self.consumer_key}:{self.consumer_secret}"
-                encoded_auth = base64.b64encode(auth_string.encode()).decode()
-                
-                headers = {'Authorization': f'Basic {encoded_auth}'}
-                
-                response = requests.get(
-                    f'{self.base_url}/oauth/v1/generate?grant_type=client_credentials',
-                    headers=headers,
-                    timeout=settings.MPESA_REQUEST_TIMEOUT
-                )
-                
-                if response.status_code == 200:
-                    return response.json().get('access_token')
-                else:
-                    logger.error(f"Failed to get access token: {response.text}")
-                    return None
-            else:
-                # For sandbox/development, return mock token
-                return "mock_access_token_12345"
-                
+            # For development, return a mock token
+            return "mock_access_token_12345"
         except Exception as e:
             logger.error(f"Error getting access token: {e}")
             return None
     
-    def get_loan_qualification_status(self, user):
-        """Check if user qualifies for loan based on M-Pesa thresholds"""
+    def get_transaction_history(self, user, days=90):
+        """
+        Get user's M-Pesa transaction history
+        Note: This uses a mock implementation for development
+        """
         try:
-            profile = user.profile
-            thresholds = settings.MPESA_LOAN_QUALIFICATION
+            from apps.users.models import MpesaTransaction
             
-            # Check minimum requirements
-            meets_volume = float(profile.avg_monthly_volume) >= thresholds['minimum_monthly_volume']
-            meets_frequency = profile.transaction_count_30d >= thresholds['minimum_transaction_count']
-            meets_consistency = profile.income_consistency_score >= thresholds['minimum_consistency_score']
+            # Generate realistic mock transactions
+            transactions = self._generate_mock_transactions(user, days)
             
-            risk_indicators = self._identify_risk_indicators(user)
-            meets_risk_threshold = len(risk_indicators) <= thresholds['maximum_risk_indicators']
+            # Update user profile with analyzed data
+            self._update_user_profile_from_transactions(user, transactions)
             
-            # Calculate qualification score
-            qualification_score = (
-                (1 if meets_volume else 0) +
-                (1 if meets_frequency else 0) +
-                (1 if meets_consistency else 0) +
-                (1 if meets_risk_threshold else 0)
-            )
+            return transactions
             
-            if qualification_score >= 3:
-                return 'qualified'
-            elif qualification_score >= 2:
-                return 'limited_qualification'
+        except Exception as e:
+            logger.error(f"Error getting transaction history: {e}")
+            return []
+    
+    def _generate_mock_transactions(self, user, days):
+        """Generate realistic mock transactions for development"""
+        from apps.users.models import MpesaTransaction
+        
+        transactions = []
+        now = timezone.now()
+        
+        # Generate 30-60 transactions for a 90-day period
+        transaction_count = random.randint(30, 60)
+        
+        for i in range(transaction_count):
+            transaction_date = now - timedelta(days=random.randint(0, days))
+            
+            # Vary amount based on user's business type
+            if user.business_type == 'Retail':
+                base_amount = 2500
+            elif user.business_type == 'Wholesale':
+                base_amount = 8000
             else:
-                return 'not_qualified'
+                base_amount = 1500
                 
-        except Exception as e:
-            logger.error(f"Error checking loan qualification: {e}")
-            return 'not_qualified'
+            amount = Decimal(random.uniform(base_amount * 0.3, base_amount * 2.5))
+            
+            # More realistic transaction types based on business
+            if random.random() < 0.6:  # 60% receive money (income)
+                transaction_type = 'receive_money'
+            else:
+                transaction_type = random.choice(['send_money', 'pay_bill', 'buy_goods'])
+            
+            transaction = MpesaTransaction(
+                user=user,
+                transaction_id=f"MPE{random.randint(1000000000, 9999999999)}",
+                transaction_type=transaction_type,
+                amount=amount,
+                balance_after=Decimal(random.uniform(5000, 50000)),
+                sender="254700000000" if transaction_type == 'receive_money' else user.phone_number,
+                receiver=user.phone_number if transaction_type == 'receive_money' else "254711000000",
+                description=f"Payment for {user.business_type} business" if transaction_type == 'receive_money' else f"Business expense: {transaction_type.replace('_', ' ')}",
+                transaction_time=transaction_date,
+                is_high_risk=random.random() < 0.03  # 3% chance of high risk
+            )
+            transactions.append(transaction)
+        
+        return transactions
     
-    def calculate_recommended_loan_limit(self, user):
-        """Calculate loan limit based on M-Pesa transaction volume"""
+    def _update_user_profile_from_transactions(self, user, transactions):
+        """Analyze transactions and update user profile"""
+        try:
+            from apps.users.models import UserProfile
+            
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            
+            if not transactions:
+                return
+            
+            # Calculate key metrics
+            total_amount = sum(t.amount for t in transactions)
+            transaction_count = len(transactions)
+            avg_amount = total_amount / transaction_count if transaction_count > 0 else 0
+            
+            # Count transactions by type
+            receive_count = len([t for t in transactions if t.transaction_type == 'receive_money'])
+            send_count = len([t for t in transactions if t.transaction_type in ['send_money', 'pay_bill', 'buy_goods']])
+            
+            # Calculate consistency (ratio of receive transactions)
+            income_consistency = receive_count / transaction_count if transaction_count > 0 else 0
+            
+            # Update profile
+            profile.avg_monthly_volume = float(total_amount) * (30/90)  # Extrapolate to monthly
+            profile.avg_transaction_amount = avg_amount
+            profile.transaction_count_90d = transaction_count
+            profile.transaction_count_30d = int(transaction_count / 3)
+            profile.transaction_consistency = income_consistency
+            profile.income_consistency_score = income_consistency
+            profile.has_regular_income = income_consistency > 0.5  # Regular if >50% are incoming
+            
+            # Calculate savings ratio (simplified - income vs expenses)
+            if receive_count > 0:
+                total_income = sum(t.amount for t in transactions if t.transaction_type == 'receive_money')
+                total_expenses = sum(t.amount for t in transactions if t.transaction_type != 'receive_money')
+                if total_income > 0:
+                    profile.savings_ratio = max(0, (total_income - total_expenses) / total_income)
+            
+            # Set activity level
+            if profile.transaction_count_30d >= 40:
+                profile.mpesa_activity_level = 'very_high'
+            elif profile.transaction_count_30d >= 25:
+                profile.mpesa_activity_level = 'high'
+            elif profile.transaction_count_30d >= 15:
+                profile.mpesa_activity_level = 'medium'
+            else:
+                profile.mpesa_activity_level = 'low'
+            
+            profile.mpesa_last_sync = timezone.now()
+            profile.save()
+            
+            logger.info(f"Updated profile for {user.phone_number} with {transaction_count} transactions")
+            
+        except Exception as e:
+            logger.error(f"Error updating profile from transactions: {e}")
+    
+    def analyze_credit_worthiness(self, user):
+        """Analyze user's M-Pesa history for loan qualification"""
         try:
             profile = user.profile
-            ratio = settings.MPESA_LOAN_QUALIFICATION['loan_to_volume_ratio']
             
-            base_limit = float(profile.avg_monthly_volume) * ratio
+            analysis = {
+                'transaction_volume_score': self._calculate_volume_score(float(profile.avg_monthly_volume)),
+                'transaction_frequency_score': self._calculate_frequency_score(profile.transaction_count_30d),
+                'consistency_score': profile.income_consistency_score,
+                'balance_stability_score': self._calculate_stability_score(user),
+                'savings_capacity_score': min(1.0, profile.savings_ratio),
+                'risk_indicators': self._identify_risk_indicators(user),
+                'recommended_loan_limit': self._calculate_loan_limit(user),
+                'qualification_status': self._check_qualification(user)
+            }
             
-            # Adjust based on transaction patterns
-            if profile.income_consistency_score > 0.7:
-                base_limit *= 1.2  # 20% bonus for consistent income
-            
-            if profile.mpesa_activity_level == 'very_high':
-                base_limit *= 1.1  # 10% bonus for high activity
-            
-            # Apply thresholds
-            max_limit = settings.MPESA_VOLUME_THRESHOLDS['very_high'] * ratio
-            min_limit = 1000  # Minimum loan amount
-            
-            return min(max_limit, max(min_limit, base_limit))
+            return analysis
             
         except Exception as e:
-            logger.error(f"Error calculating loan limit: {e}")
-            return 5000  # Default minimum
+            logger.error(f"Error analyzing credit worthiness: {e}")
+            return None
     
-    # ... rest of your existing MpesaService methods ...
+    def _calculate_volume_score(self, monthly_volume):
+        """Score based on transaction volume"""
+        if monthly_volume > 100000: return 1.0
+        elif monthly_volume > 50000: return 0.8
+        elif monthly_volume > 25000: return 0.6
+        elif monthly_volume > 10000: return 0.4
+        else: return 0.2
+    
+    def _calculate_frequency_score(self, monthly_transactions):
+        """Score based on transaction frequency"""
+        if monthly_transactions >= 40: return 1.0
+        elif monthly_transactions >= 25: return 0.8
+        elif monthly_transactions >= 15: return 0.6
+        elif monthly_transactions >= 8: return 0.4
+        else: return 0.2
+    
+    def _calculate_stability_score(self, user):
+        """Score based on transaction pattern stability"""
+        profile = user.profile
+        score = 0.5  # Base score
+        
+        # Add points for regular income
+        if profile.has_regular_income:
+            score += 0.3
+        
+        # Add points for good consistency
+        if profile.income_consistency_score > 0.7:
+            score += 0.2
+        
+        return min(1.0, score)
+    
+    def _identify_risk_indicators(self, user):
+        """Identify potential risk factors from M-Pesa data"""
+        profile = user.profile
+        risks = []
+        
+        if profile.avg_monthly_volume < 5000:
+            risks.append('low_transaction_volume')
+        
+        if profile.transaction_count_30d < 5:
+            risks.append('low_transaction_frequency')
+        
+        if profile.income_consistency_score < 0.3:
+            risks.append('irregular_income_pattern')
+        
+        if profile.savings_ratio < 0:
+            risks.append('negative_savings_trend')
+        
+        return risks
+    
+    def _calculate_loan_limit(self, user):
+        """Calculate recommended loan limit based on M-Pesa activity"""
+        profile = user.profile
+        base_limit = float(profile.avg_monthly_volume) * 0.5  # 50% of monthly volume
+        
+        # Adjust based on transaction frequency
+        frequency_multiplier = min(3.0, max(0.5, profile.transaction_count_30d / 15))
+        
+        # Adjust based on consistency
+        consistency_multiplier = max(0.5, profile.income_consistency_score * 2.0)
+        
+        # Adjust based on business age
+        business_age_multiplier = min(2.0, max(0.5, user.business_age_months / 12))
+        
+        final_limit = base_limit * frequency_multiplier * consistency_multiplier * business_age_multiplier
+        
+        return min(500000, max(5000, final_limit))  # Cap between 5,000 and 500,000
+    def _check_qualification(self, user):
+        """Check if user qualifies for loans based on M-Pesa history"""
+        profile = user.profile
+        risks = self._identify_risk_indicators(user)
+        
+        # Enhanced qualification criteria
+        if (float(profile.avg_monthly_volume) >= 5000 and 
+            profile.transaction_count_30d >= 5 and 
+            profile.income_consistency_score >= 0.3 and
+            len(risks) <= 3):
+            return 'qualified'
+        elif len(risks) >= 5:
+            return 'not_qualified'
+        else:
+            return 'limited_qualification'
