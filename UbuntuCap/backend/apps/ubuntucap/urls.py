@@ -10,4 +10,9 @@ urlpatterns = [
     
     # Loan Application with ML Scoring
     path('loans/apply/', views.LoanApplicationAPI.as_view(), name='apply_loan_ml'),
+    
+    # NEW M-Pesa Integration APIs
+    path('mpesa/analyze/', views.MpesaAnalysisAPI.as_view(), name='analyze_mpesa'),
+    path('mpesa/sync/', views.SyncMpesaDataAPI.as_view(), name='sync_mpesa'),
+    path('mpesa/consent/', views.MpesaConsentAPI.as_view(), name='mpesa_consent'),
 ]

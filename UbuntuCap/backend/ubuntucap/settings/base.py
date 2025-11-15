@@ -73,18 +73,6 @@ DATABASES = {
     }
 }
 
-# If you want to use PostgreSQL later, uncomment this:
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': config('DB_NAME', default='ubuntucap'),
-#         'USER': config('DB_USER', default='postgres'),
-#         'PASSWORD': config('DB_PASSWORD', default=''),
-#         'HOST': config('DB_HOST', default='localhost'),
-#         'PORT': config('DB_PORT', default='5432'),
-#     }
-# }
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -187,4 +175,104 @@ LOGGING = {
             'propagate': False,
         },
     },
+}
+
+# ==============================================================================
+# M-PESA DARAJA API CONFIGURATION
+# ==============================================================================
+
+# M-Pesa Environment (sandbox or production)
+MPESA_ENVIRONMENT = config('MPESA_ENVIRONMENT', default='sandbox')
+
+# M-Pesa API URLs
+if MPESA_ENVIRONMENT == 'production':
+    MPESA_BASE_URL = 'https://api.safaricom.co.ke'
+else:
+    MPESA_BASE_URL = 'https://sandbox.safaricom.co.ke'
+
+# M-Pesa API Credentials (Sandbox - for development)
+MPESA_CONSUMER_KEY = config('MPESA_CONSUMER_KEY', default='your_sandbox_consumer_key_here')
+MPESA_CONSUMER_SECRET = config('MPESA_CONSUMER_SECRET', default='your_sandbox_consumer_secret_here')
+
+# Business ShortCode (PayBill or Till Number)
+MPESA_BUSINESS_SHORTCODE = config('MPESA_BUSINESS_SHORTCODE', default='174379')  # Sandbox test code
+
+# Lipa Na M-Pesa Online Passkey
+MPESA_PASSKEY = config('MPESA_PASSKEY', default='your_passkey_here')
+
+# Transaction Type (for STK Push)
+MPESA_TRANSACTION_TYPE = 'CustomerPayBillOnline'
+
+# Callback URLs (Update these with your actual domain)
+MPESA_CALLBACK_BASE_URL = config('MPESA_CALLBACK_BASE_URL', default='https://yourdomain.com')
+MPESA_STK_CALLBACK_URL = f"{MPESA_CALLBACK_BASE_URL}/api/mpesa/stk-callback/"
+MPESA_C2B_VALIDATE_URL = f"{MPESA_CALLBACK_BASE_URL}/api/mpesa/c2b-validate/"
+MPESA_C2B_CONFIRMATION_URL = f"{MPESA_CALLBACK_BASE_URL}/api/mpesa/c2b-confirmation/"
+
+# Account Balance API (if needed)
+MPESA_ACCOUNT_BALANCE_CALLBACK_URL = f"{MPESA_CALLBACK_BASE_URL}/api/mpesa/balance-callback/"
+
+# Transaction Status API
+MPESA_TRANSACTION_STATUS_CALLBACK_URL = f"{MPESA_CALLBACK_BASE_URL}/api/mpesa/transaction-status-callback/"
+
+# M-Pesa Timeout (in seconds)
+MPESA_REQUEST_TIMEOUT = 30
+
+# M-Pesa Security Configuration
+MPESA_INITIATOR_NAME = config('MPESA_INITIATOR_NAME', default='testapi')
+MPESA_INITIATOR_SECURITY_CREDENTIAL = config('MPESA_INITIATOR_SECURITY_CREDENTIAL', default='')
+
+# ==============================================================================
+# M-PESA TRANSACTION ANALYSIS CONFIGURATION
+# ==============================================================================
+
+# Credit Scoring Thresholds
+MPESA_CREDIT_SCORE_THRESHOLDS = {
+    'excellent': 80,
+    'good': 70,
+    'fair': 60,
+    'poor': 50
+}
+
+# Transaction Volume Thresholds (KES)
+MPESA_VOLUME_THRESHOLDS = {
+    'very_high': 100000,    # 100K+
+    'high': 50000,          # 50K - 100K
+    'medium': 25000,        # 25K - 50K
+    'low': 10000,           # 10K - 25K
+    'very_low': 0           # 0 - 10K
+}
+
+# Transaction Frequency Thresholds (transactions per month)
+MPESA_FREQUENCY_THRESHOLDS = {
+    'very_high': 40,    # 40+ transactions/month
+    'high': 25,         # 25-39 transactions/month
+    'medium': 15,       # 15-24 transactions/month
+    'low': 8,           # 8-14 transactions/month
+    'very_low': 0       # 0-7 transactions/month
+}
+
+# Risk Assessment Weights
+MPESA_RISK_WEIGHTS = {
+    'transaction_volume': 0.35,
+    'transaction_frequency': 0.25,
+    'income_consistency': 0.20,
+    'savings_ratio': 0.15,
+    'business_age': 0.05
+}
+
+# Loan Qualification Criteria
+MPESA_LOAN_QUALIFICATION = {
+    'minimum_monthly_volume': 10000,      # KES 10,000
+    'minimum_transaction_count': 8,       # 8 transactions/month
+    'minimum_consistency_score': 0.4,     # 40% consistency
+    'maximum_risk_indicators': 2,         # Max 2 risk factors
+    'loan_to_volume_ratio': 0.3           # Max loan = 30% of monthly volume
+}
+
+# M-Pesa Transaction Types for Analysis
+MPESA_TRANSACTION_CATEGORIES = {
+    'income': ['receive_money', 'deposit'],
+    'expenses': ['send_money', 'pay_bill', 'buy_goods', 'withdrawal'],
+    'high_risk': ['withdrawal', 'send_money']  # Can indicate cash flow issues
 }

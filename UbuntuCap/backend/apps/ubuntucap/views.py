@@ -248,6 +248,221 @@ class LoanApplicationAPI(APIView):
         except:
             return round(principal / months, 2)
 
+# M-Pesa Analysis API
+class MpesaAnalysisAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Analyze user's M-Pesa history for loan qualification"""
+        try:
+            from apps.ubuntucap.services.mpesa_service import MpesaService
+            
+            user = request.user
+            mpesa_service = MpesaService()
+            
+            # Check if user has granted M-Pesa consent
+            if not user.mpesa_consent_granted:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'M-Pesa consent not granted. Please grant consent to analyze your transaction history.'
+                }, status=400)
+            
+            # Get transaction history and analyze
+            transactions = mpesa_service.get_transaction_history(user, days=90)
+            analysis = mpesa_service.analyze_credit_worthiness(user)
+            
+            if analysis:
+                # Update user's credit score based on M-Pesa analysis
+                mpesa_based_score = self._calculate_mpesa_credit_score(analysis)
+                
+                response_data = {
+                    'success': True,
+                    'user_phone': user.phone_number,
+                    'transaction_analysis': {
+                        'total_transactions_analyzed': len(transactions),
+                        'analysis_period_days': 90,
+                        'qualification_status': analysis['qualification_status'],
+                        'recommended_loan_limit': analysis['recommended_loan_limit'],
+                        'mpesa_based_credit_score': mpesa_based_score,
+                        'risk_indicators': analysis['risk_indicators'],
+                        'transaction_volume_score': analysis['transaction_volume_score'],
+                        'transaction_frequency_score': analysis['transaction_frequency_score'],
+                        'income_consistency_score': analysis['consistency_score'],
+                        'savings_capacity_score': analysis['savings_capacity_score']
+                    },
+                    'loan_qualification': self._get_qualification_details(analysis),
+                    'timestamp': datetime.now().isoformat()
+                }
+                
+                logger.info(f"M-Pesa analysis completed for {user.phone_number}: {analysis['qualification_status']}")
+                
+            else:
+                response_data = {
+                    'success': False,
+                    'error': 'Could not analyze M-Pesa history'
+                }
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            logger.error(f"M-Pesa analysis error: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': 'M-Pesa analysis failed',
+                'details': str(e)
+            }, status=500)
+    
+    def _calculate_mpesa_credit_score(self, analysis):
+        """Calculate credit score based on M-Pesa analysis"""
+        try:
+            base_score = 50
+            
+            # Add scores from different factors
+            volume_score = analysis['transaction_volume_score'] * 20
+            frequency_score = analysis['transaction_frequency_score'] * 15
+            consistency_score = analysis['consistency_score'] * 10
+            savings_score = analysis['savings_capacity_score'] * 5
+            
+            # Subtract for risk indicators
+            risk_penalty = len(analysis['risk_indicators']) * 5
+            
+            final_score = base_score + volume_score + frequency_score + consistency_score + savings_score - risk_penalty
+            
+            return max(0, min(100, final_score))
+            
+        except Exception as e:
+            logger.error(f"Error calculating M-Pesa credit score: {e}")
+            return 50
+    
+    def _get_qualification_details(self, analysis):
+        """Get detailed qualification information"""
+        status = analysis['qualification_status']
+        limit = analysis['recommended_loan_limit']
+        
+        qualification_map = {
+            'qualified': {
+                'status': 'approved',
+                'message': 'Congratulations! You qualify for a loan based on your M-Pesa transaction history.',
+                'next_steps': ['Submit loan application', 'Choose loan amount', 'Complete verification']
+            },
+            'limited_qualification': {
+                'status': 'limited',
+                'message': 'You qualify for limited loan amounts. Consider improving your transaction consistency.',
+                'next_steps': ['Apply for smaller loan', 'Improve transaction history', 'Re-apply in 30 days']
+            },
+            'not_qualified': {
+                'status': 'denied',
+                'message': 'Currently not qualified based on M-Pesa history. Improve your transaction patterns.',
+                'next_steps': ['Increase transaction volume', 'Maintain consistent activity', 'Re-apply in 60 days']
+            }
+        }
+        
+        details = qualification_map.get(status, qualification_map['not_qualified'])
+        details['recommended_limit'] = limit
+        
+        return details
+
+# M-Pesa Data Sync API
+class SyncMpesaDataAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Sync user's M-Pesa data"""
+        try:
+            from apps.ubuntucap.services.mpesa_service import MpesaService
+            
+            user = request.user
+            
+            if not user.mpesa_consent_granted:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'M-Pesa consent not granted. Please update your profile to grant consent.'
+                }, status=400)
+            
+            mpesa_service = MpesaService()
+            transactions = mpesa_service.get_transaction_history(user)
+            
+            # Get updated profile data
+            profile = user.profile
+            analysis = mpesa_service.analyze_credit_worthiness(user)
+            
+            response_data = {
+                'success': True,
+                'transactions_synced': len(transactions),
+                'last_sync': profile.mpesa_last_sync.isoformat() if profile.mpesa_last_sync else None,
+                'current_metrics': {
+                    'avg_monthly_volume': float(profile.avg_monthly_volume),
+                    'transaction_count_30d': profile.transaction_count_30d,
+                    'transaction_count_90d': profile.transaction_count_90d,
+                    'avg_transaction_amount': float(profile.avg_transaction_amount),
+                    'income_consistency_score': profile.income_consistency_score,
+                    'has_regular_income': profile.has_regular_income,
+                    'mpesa_activity_level': profile.mpesa_activity_level
+                },
+                'message': 'M-Pesa data synced successfully'
+            }
+            
+            if analysis:
+                response_data['qualification_status'] = analysis['qualification_status']
+                response_data['recommended_loan_limit'] = analysis['recommended_loan_limit']
+            
+            logger.info(f"M-Pesa data synced for {user.phone_number}: {len(transactions)} transactions")
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            logger.error(f"M-Pesa sync error: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': 'M-Pesa sync failed',
+                'details': str(e)
+            }, status=500)
+
+# M-Pesa Consent API
+class MpesaConsentAPI(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """Update user's M-Pesa consent"""
+        try:
+            data = json.loads(request.body) if request.body else {}
+            user = request.user
+            
+            consent_granted = data.get('consent_granted', False)
+            mpesa_phone = data.get('mpesa_phone_number', user.phone_number)
+            
+            user.mpesa_consent_granted = consent_granted
+            user.mpesa_phone_number = mpesa_phone
+            user.save()
+            
+            response_data = {
+                'success': True,
+                'consent_granted': consent_granted,
+                'mpesa_phone_number': mpesa_phone,
+                'message': 'M-Pesa consent updated successfully'
+            }
+            
+            if consent_granted:
+                response_data['next_steps'] = [
+                    'Sync your M-Pesa data',
+                    'Analyze transaction history',
+                    'Check loan qualification'
+                ]
+            
+            logger.info(f"M-Pesa consent updated for {user.phone_number}: {consent_granted}")
+            
+            return JsonResponse(response_data)
+            
+        except Exception as e:
+            logger.error(f"M-Pesa consent update error: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': 'Failed to update M-Pesa consent'
+            }, status=500)
+
 # Quick Credit Check (No authentication required)
 @csrf_exempt
 @require_http_methods(["POST"])

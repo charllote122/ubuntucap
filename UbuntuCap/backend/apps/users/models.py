@@ -76,6 +76,29 @@ class UserProfile(models.Model):
     transaction_consistency = models.FloatField(default=0)
     savings_ratio = models.FloatField(default=0)
     
+    # NEW M-Pesa Transaction History Fields
+    mpesa_last_sync = models.DateTimeField(null=True, blank=True)
+    mpesa_balance = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    transaction_count_30d = models.IntegerField(default=0)
+    transaction_count_90d = models.IntegerField(default=0)
+    avg_transaction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    max_transaction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    min_transaction_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    
+    # Transaction Pattern Analysis
+    income_consistency_score = models.FloatField(default=0)
+    has_regular_income = models.BooleanField(default=False)
+    primary_transaction_times = models.JSONField(default=dict, blank=True)  # {'morning': 0.3, 'afternoon': 0.4, 'evening': 0.3}
+    
+    # Risk Indicators
+    negative_balance_count = models.IntegerField(default=0)
+    overdraft_frequency = models.IntegerField(default=0)
+    high_risk_transactions = models.IntegerField(default=0)
+    
+    # M-Pesa Activity Scores
+    mpesa_activity_level = models.CharField(max_length=20, default='low')  # low, medium, high, very_high
+    customer_rating = models.FloatField(default=3.0)
+    
     last_ml_update = models.DateTimeField(null=True, blank=True)
     
     class Meta:
@@ -83,3 +106,57 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"Profile for {self.user.phone_number}"
+    
+    def update_mpesa_activity_level(self):
+        """Update activity level based on transaction patterns"""
+        if self.transaction_count_30d >= 60:
+            self.mpesa_activity_level = 'very_high'
+        elif self.transaction_count_30d >= 30:
+            self.mpesa_activity_level = 'high'
+        elif self.transaction_count_30d >= 15:
+            self.mpesa_activity_level = 'medium'
+        else:
+            self.mpesa_activity_level = 'low'
+        self.save()
+
+class MpesaTransaction(models.Model):
+    TRANSACTION_TYPES = [
+        ('deposit', 'Deposit'),
+        ('withdrawal', 'Withdrawal'),
+        ('send_money', 'Send Money'),
+        ('pay_bill', 'Pay Bill'),
+        ('buy_goods', 'Buy Goods'),
+        ('receive_money', 'Receive Money'),
+    ]
+    
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='mpesa_transactions')
+    
+    # Transaction details
+    transaction_id = models.CharField(max_length=50, unique=True)
+    transaction_type = models.CharField(max_length=20, choices=TRANSACTION_TYPES)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    balance_after = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    
+    # Parties involved
+    sender = models.CharField(max_length=15, blank=True)
+    receiver = models.CharField(max_length=15, blank=True)
+    description = models.TextField(blank=True)
+    
+    # Timing
+    transaction_time = models.DateTimeField()
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    
+    # Risk assessment
+    is_high_risk = models.BooleanField(default=False)
+    risk_reason = models.CharField(max_length=100, blank=True)
+    
+    class Meta:
+        db_table = 'mpesa_transactions'
+        indexes = [
+            models.Index(fields=['user', 'transaction_time']),
+            models.Index(fields=['transaction_time']),
+        ]
+    
+    def __str__(self):
+        return f"{self.transaction_id} - {self.amount} - {self.user.phone_number}"
