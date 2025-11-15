@@ -1,3 +1,4 @@
+// src/components/auth/RegisterForm.jsx
 import React, { useState } from 'react'
 import { 
   User, 
@@ -140,12 +141,6 @@ const RegisterForm = ({ onSubmit, isLoading = false, error = '' }) => {
   const isFormValid = isFirstNameValid && isLastNameValid && isPhoneValid && 
                      isEmailValid && isBusinessNameValid && isBusinessTypeValid && 
                      isLocationValid && isPasswordValid && isPasswordMatch
-
-  const getFieldError = (fieldName, value, validator) => {
-    if (!touched[fieldName]) return ''
-    if (!value) return `${fieldName.replace('_', ' ')} is required`
-    return validator(value) || ''
-  }
 
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
