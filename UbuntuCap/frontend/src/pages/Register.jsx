@@ -20,7 +20,7 @@ function Register() {
       const result = await register(formData);
       if (result.success) {
         setSuccess(true);
-        // Show success message for 2 seconds, then redirect to login
+        // Show success message for 2 seconds, then redirect to LOGIN
         setTimeout(() => {
           navigate('/login');
         }, 2000);
@@ -68,7 +68,7 @@ function Register() {
         {success && (
           <div className="bg-ubuntu-green-lighter border border-ubuntu-green-light text-ubuntu-green-dark px-4 py-3 rounded-lg flex items-center">
             <CheckCircle className="h-5 w-5 mr-2" />
-            Registration successful! Redirecting to login...
+            Registration successful! Redirecting to login...  {/* Updated message */}
           </div>
         )}
 

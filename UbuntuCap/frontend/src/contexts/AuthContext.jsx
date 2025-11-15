@@ -14,12 +14,16 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in on app start
     const user = authService.getCurrentUser();
+    console.log('🟡 [AuthContext] Loading user from storage:', user);
+    
     if (user) {
       setCurrentUser(user);
+      setIsAuthenticated(true);
     }
     setLoading(false);
   }, []);
@@ -30,9 +34,15 @@ export const AuthProvider = ({ children }) => {
       const result = await authService.login(phoneNumber, password);
       console.log('🟢 [AuthContext] Login successful:', result);
       
+      // Get the updated user from authService
+      const user = authService.getCurrentUser();
+      console.log('🟢 [AuthContext] Updated user from service:', user);
+      
       // Update current user state
-      setCurrentUser(result.user || result); // Handle both response formats
-      return { success: true, user: result.user || result };
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      
+      return { success: true, user: user };
     } catch (error) {
       console.error('🔴 [AuthContext] Login failed:', error);
       return { 
@@ -48,9 +58,15 @@ export const AuthProvider = ({ children }) => {
       const result = await authService.register(userData);
       console.log('🟢 [AuthContext] Registration successful:', result);
       
+      // Get the updated user from authService
+      const user = authService.getCurrentUser();
+      console.log('🟢 [AuthContext] Updated user from service:', user);
+      
       // Update current user state
-      setCurrentUser(result.user || result); // Handle both response formats
-      return { success: true, user: result.user || result };
+      setCurrentUser(user);
+      setIsAuthenticated(true);
+      
+      return { success: true, user: user };
     } catch (error) {
       console.error('🔴 [AuthContext] Registration error:', error);
       return { 
@@ -63,6 +79,7 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     authService.logout();
     setCurrentUser(null);
+    setIsAuthenticated(false);
   };
 
   const value = {
@@ -70,7 +87,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
-    isAuthenticated: authService.isAuthenticated(),
+    isAuthenticated,
     loading
   };
 

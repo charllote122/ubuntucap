@@ -51,24 +51,6 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   return children
 }
 
-const PublicRoute = ({ children }) => {
-  const { isAuthenticated, loading } = useAuth()
-  
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    )
-  }
-  
-  if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />
-  }
-  
-  return children
-}
-
 function App() {
   return (
     <AuthProvider>
@@ -77,26 +59,10 @@ function App() {
           <Routes>
             {/* Public Routes */}
             <Route path="/" element={<Dashboard />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
             <Route path="/calculator" element={<LoanCalculator />} />
             <Route path="/ussd" element={<USSDInterface />} />
-            
-            {/* Auth Routes - Only accessible when logged out */}
-            <Route 
-              path="/login" 
-              element={
-                <PublicRoute>
-                  <Login />
-                </PublicRoute>
-              } 
-            />
-            <Route 
-              path="/register" 
-              element={
-                <PublicRoute>
-                  <Register />
-                </PublicRoute>
-              } 
-            />
             
             {/* Protected User Routes */}
             <Route 
