@@ -28,10 +28,18 @@ export const AuthProvider = ({ children }) => {
     setLoading(false);
   }, []);
 
-  const login = async (phoneNumber, password) => {
+  const login = async (credentials) => {
     try {
-      console.log('🔵 [AuthContext] Attempting login...');
-      const result = await authService.login(phoneNumber, password);
+      console.log('🔵 [AuthContext] Attempting login with credentials:', credentials);
+      
+      // Extract phone_number and password from the credentials object
+      const { phone_number, password } = credentials;
+      
+      if (!phone_number || !password) {
+        throw new Error('Phone number and password are required');
+      }
+      
+      const result = await authService.login(phone_number, password);
       console.log('🟢 [AuthContext] Login successful:', result);
       
       // Get the updated user from authService
@@ -47,7 +55,7 @@ export const AuthProvider = ({ children }) => {
       console.error('🔴 [AuthContext] Login failed:', error);
       return { 
         success: false, 
-        error: error.error || error.detail || 'Login failed' 
+        error: error.error || error.detail || error.message || 'Login failed' 
       };
     }
   };
@@ -55,6 +63,15 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       console.log('🔵 [AuthContext] Calling authService.register with:', userData);
+      
+      // Validate required fields
+      const requiredFields = ['phone_number', 'email', 'password', 'first_name', 'last_name'];
+      const missingFields = requiredFields.filter(field => !userData[field]);
+      
+      if (missingFields.length > 0) {
+        throw new Error(`Missing required fields: ${missingFields.join(', ')}`);
+      }
+      
       const result = await authService.register(userData);
       console.log('🟢 [AuthContext] Registration successful:', result);
       
@@ -71,15 +88,27 @@ export const AuthProvider = ({ children }) => {
       console.error('🔴 [AuthContext] Registration error:', error);
       return { 
         success: false, 
-        error: error.error || error.detail || 'Registration failed' 
+        error: error.error || error.detail || error.message || 'Registration failed' 
       };
     }
   };
 
   const logout = () => {
+    console.log('🟡 [AuthContext] Logging out user');
     authService.logout();
     setCurrentUser(null);
     setIsAuthenticated(false);
+  };
+
+  const updateUser = (userData) => {
+    console.log('🟡 [AuthContext] Updating user data:', userData);
+    setCurrentUser(prevUser => ({ ...prevUser, ...userData }));
+    
+    // Also update in localStorage
+    const storedUser = authService.getCurrentUser();
+    if (storedUser) {
+      localStorage.setItem('currentUser', JSON.stringify({ ...storedUser, ...userData }));
+    }
   };
 
   const value = {
@@ -87,6 +116,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    updateUser,
     isAuthenticated,
     loading
   };

@@ -1,7 +1,7 @@
-import React, { useState } from 'react'
-import { Eye, EyeOff, Smartphone, Lock, LogIn } from 'lucide-react'
+import React, { useState, useEffect } from 'react'
+import { Eye, EyeOff, Smartphone, Lock, LogIn, CheckCircle } from 'lucide-react'
 
-const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
+const LoginForm = ({ onSubmit, isLoading = false, error = '', initialPhone = '' }) => {
   const [formData, setFormData] = useState({
     phone_number: '',
     password: ''
@@ -12,33 +12,51 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
     password: false
   })
 
+  // Pre-fill phone number if provided (e.g., from registration)
+  useEffect(() => {
+    if (initialPhone) {
+      setFormData(prev => ({
+        ...prev,
+        phone_number: formatPhoneNumber(initialPhone)
+      }))
+    }
+  }, [initialPhone])
+
+  // Helper function to format phone number
+  const formatPhoneNumber = (phone) => {
+    let formattedValue = phone.replace(/\D/g, '')
+    
+    if (formattedValue.length > 3 && formattedValue.length <= 6) {
+      formattedValue = formattedValue.replace(/(\d{3})(\d{0,3})/, '$1 $2')
+    } else if (formattedValue.length > 6) {
+      formattedValue = formattedValue.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1 $2 $3')
+    }
+    
+    return formattedValue
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setTouched({ phone_number: true, password: true })
     
     if (formData.phone_number && formData.password) {
-      onSubmit(formData)
+      // Remove spaces from phone number before sending to Django
+      const loginData = {
+        phone_number: formData.phone_number.replace(/\s/g, ''),
+        password: formData.password
+      }
+      console.log('🔵 [LoginForm] Sending login data:', loginData)
+      onSubmit(loginData)
     }
   }
 
   const handleChange = (e) => {
     const { name, value } = e.target
     
-    // Format phone number as user types
     if (name === 'phone_number') {
-      // Remove all non-digit characters
-      let formattedValue = value.replace(/\D/g, '')
-      
-      // Format as 254 XXX XXX XXX
-      if (formattedValue.length > 3 && formattedValue.length <= 6) {
-        formattedValue = formattedValue.replace(/(\d{3})(\d{0,3})/, '$1 $2')
-      } else if (formattedValue.length > 6) {
-        formattedValue = formattedValue.replace(/(\d{3})(\d{3})(\d{0,3})/, '$1 $2 $3')
-      }
-      
       setFormData(prev => ({
         ...prev,
-        [name]: formattedValue
+        [name]: formatPhoneNumber(value)
       }))
     } else {
       setFormData(prev => ({
@@ -78,52 +96,58 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
   const phoneError = getPhoneError()
   const passwordError = getPasswordError()
 
+  // Show success states when fields are valid
+  const showPhoneSuccess = touched.phone_number && isPhoneValid && !phoneError
+  const showPasswordSuccess = touched.password && isPasswordValid && !passwordError
+
   return (
     <form className="mt-8 space-y-6" onSubmit={handleSubmit} noValidate>
       {/* Error Message */}
       {error && (
-        <div className="bg-ubuntu-red-light border border-ubuntu-red text-ubuntu-red px-4 py-3 rounded-lg flex items-start">
-          <div className="w-2 h-2 bg-ubuntu-red rounded-full mt-2 mr-3 flex-shrink-0"></div>
+        <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-lg flex items-start">
+          <div className="w-2 h-2 bg-red-500 rounded-full mt-2 mr-3 flex-shrink-0"></div>
           <span className="font-medium">{error}</span>
         </div>
       )}
 
       {/* Phone Number Field */}
       <div>
-        <label htmlFor="phone_number" className="block text-sm font-medium text-ubuntu-gray-700 mb-2">
+        <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700 mb-2">
           Phone Number
         </label>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Smartphone className="h-5 w-5 text-ubuntu-gray-400" />
+            <Smartphone className="h-5 w-5 text-gray-400" />
           </div>
           <input
             id="phone_number"
             name="phone_number"
             type="tel"
             required
-            className={`block w-full pl-10 pr-3 py-3 border rounded-lg placeholder-ubuntu-gray-400 text-ubuntu-gray-900 focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors ${
+            className={`block w-full pl-10 pr-3 py-3 border rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
               phoneError && touched.phone_number
-                ? 'border-ubuntu-red focus:ring-ubuntu-red focus:border-ubuntu-red'
-                : 'border-ubuntu-gray-300'
-            } ${isLoading ? 'bg-ubuntu-gray-100 cursor-not-allowed' : ''}`}
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                : showPhoneSuccess
+                ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                : 'border-gray-300'
+            } ${isLoading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             placeholder="254 712 345 678"
             value={formData.phone_number}
             onChange={handleChange}
             onBlur={handleBlur}
             disabled={isLoading}
-            maxLength={14} // 254 XXX XXX XXX with spaces
+            maxLength={14}
           />
         </div>
         {phoneError && touched.phone_number && (
-          <p className="mt-1 text-sm text-ubuntu-red flex items-center">
-            <div className="w-1.5 h-1.5 bg-ubuntu-red rounded-full mr-2"></div>
+          <p className="mt-1 text-sm text-red-600 flex items-center">
+            <div className="w-1.5 h-1.5 bg-red-600 rounded-full mr-2"></div>
             {phoneError}
           </p>
         )}
-        {!phoneError && touched.phone_number && isPhoneValid && (
-          <p className="mt-1 text-sm text-ubuntu-green flex items-center">
-            <div className="w-1.5 h-1.5 bg-ubuntu-green rounded-full mr-2"></div>
+        {showPhoneSuccess && (
+          <p className="mt-1 text-sm text-green-600 flex items-center">
+            <CheckCircle className="h-4 w-4 mr-2" />
             Valid phone number
           </p>
         )}
@@ -132,30 +156,32 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
       {/* Password Field */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <label htmlFor="password" className="block text-sm font-medium text-ubuntu-gray-700">
+          <label htmlFor="password" className="block text-sm font-medium text-gray-700">
             Password
           </label>
           <a
             href="/forgot-password"
-            className="text-sm text-ubuntu-green hover:text-ubuntu-green-dark font-medium transition-colors"
+            className="text-sm text-green-600 hover:text-green-700 font-medium transition-colors"
           >
             Forgot password?
           </a>
         </div>
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Lock className="h-5 w-5 text-ubuntu-gray-400" />
+            <Lock className="h-5 w-5 text-gray-400" />
           </div>
           <input
             id="password"
             name="password"
             type={showPassword ? 'text' : 'password'}
             required
-            className={`block w-full pl-10 pr-10 py-3 border rounded-lg placeholder-ubuntu-gray-400 text-ubuntu-gray-900 focus:outline-none focus:ring-2 focus:ring-ubuntu-green focus:border-ubuntu-green transition-colors ${
+            className={`block w-full pl-10 pr-10 py-3 border rounded-lg placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-colors ${
               passwordError && touched.password
-                ? 'border-ubuntu-red focus:ring-ubuntu-red focus:border-ubuntu-red'
-                : 'border-ubuntu-gray-300'
-            } ${isLoading ? 'bg-ubuntu-gray-100 cursor-not-allowed' : ''}`}
+                ? 'border-red-500 focus:ring-red-500 focus:border-red-500'
+                : showPasswordSuccess
+                ? 'border-green-500 focus:ring-green-500 focus:border-green-500'
+                : 'border-gray-300'
+            } ${isLoading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
             placeholder="Enter your password"
             value={formData.password}
             onChange={handleChange}
@@ -170,21 +196,21 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
             disabled={isLoading}
           >
             {showPassword ? (
-              <EyeOff className="h-5 w-5 text-ubuntu-gray-400 hover:text-ubuntu-gray-600 transition-colors" />
+              <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
             ) : (
-              <Eye className="h-5 w-5 text-ubuntu-gray-400 hover:text-ubuntu-gray-600 transition-colors" />
+              <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
             )}
           </button>
         </div>
         {passwordError && touched.password && (
-          <p className="mt-1 text-sm text-ubuntu-red flex items-center">
-            <div className="w-1.5 h-1.5 bg-ubuntu-red rounded-full mr-2"></div>
+          <p className="mt-1 text-sm text-red-600 flex items-center">
+            <div className="w-1.5 h-1.5 bg-red-600 rounded-full mr-2"></div>
             {passwordError}
           </p>
         )}
-        {!passwordError && touched.password && isPasswordValid && (
-          <p className="mt-1 text-sm text-ubuntu-green flex items-center">
-            <div className="w-1.5 h-1.5 bg-ubuntu-green rounded-full mr-2"></div>
+        {showPasswordSuccess && (
+          <p className="mt-1 text-sm text-green-600 flex items-center">
+            <CheckCircle className="h-4 w-4 mr-2" />
             Password looks good
           </p>
         )}
@@ -196,10 +222,10 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
           id="remember-me"
           name="remember-me"
           type="checkbox"
-          className="h-4 w-4 text-ubuntu-green focus:ring-ubuntu-green border-ubuntu-gray-300 rounded"
+          className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
           disabled={isLoading}
         />
-        <label htmlFor="remember-me" className="ml-2 block text-sm text-ubuntu-gray-700">
+        <label htmlFor="remember-me" className="ml-2 block text-sm text-gray-700">
           Remember me for 30 days
         </label>
       </div>
@@ -209,7 +235,7 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         <button
           type="submit"
           disabled={isLoading || !isFormValid}
-          className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-ubuntu-green hover:bg-ubuntu-green-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-ubuntu-green disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+          className="group relative w-full flex justify-center items-center py-4 px-4 border border-transparent text-lg font-semibold rounded-lg text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:hover:transform-none"
         >
           {isLoading ? (
             <div className="flex items-center">
@@ -225,26 +251,13 @@ const LoginForm = ({ onSubmit, isLoading = false, error = '' }) => {
         </button>
       </div>
 
-      {/* Security Notice */}
-      <div className="bg-ubuntu-blue-light rounded-lg p-4 border border-ubuntu-blue-light">
-        <div className="flex items-start">
-          <Lock className="h-4 w-4 text-ubuntu-blue mt-0.5 mr-2 flex-shrink-0" />
-          <div>
-            <p className="text-ubuntu-blue text-sm font-medium">Secure Login</p>
-            <p className="text-ubuntu-blue text-xs mt-1">
-              Your login is protected with bank-level security. All data is encrypted.
-            </p>
-          </div>
-        </div>
-      </div>
-
       {/* Demo Credentials (for development) */}
       {process.env.NODE_ENV === 'development' && (
-        <div className="bg-ubuntu-gray-100 rounded-lg p-4 border border-ubuntu-gray-300">
-          <p className="text-ubuntu-gray-700 text-sm font-medium mb-2">Demo Credentials:</p>
-          <div className="text-ubuntu-gray-600 text-xs space-y-1">
-            <p>Phone: <span className="font-mono">254712345678</span></p>
-            <p>Password: <span className="font-mono">demopassword123</span></p>
+        <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+          <p className="text-gray-700 text-sm font-medium mb-2">Demo Credentials:</p>
+          <div className="text-gray-600 text-xs space-y-1">
+            <p>Phone: <span className="font-mono bg-gray-100 px-1 rounded">254712345678</span></p>
+            <p>Password: <span className="font-mono bg-gray-100 px-1 rounded">demopassword123</span></p>
           </div>
         </div>
       )}
