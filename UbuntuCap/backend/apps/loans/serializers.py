@@ -1,25 +1,43 @@
 from rest_framework import serializers
-from .models import Loan, LoanRepayment, LoanApplication
+from .models import Loan, LoanRepayment
 from apps.users.models import User
 
 class LoanApplicationSerializer(serializers.ModelSerializer):
+    max_loan_amount = serializers.SerializerMethodField()
+    
     class Meta:
-        model = LoanApplication
-        fields = ['amount', 'purpose', 'term_days', 'business_age_months', 
-                 'existing_loans_count', 'average_monthly_sales']
+        model = Loan
+        fields = ['amount', 'purpose', 'term_days', 'business_type', 'max_loan_amount']
+        read_only_fields = ['max_loan_amount']
+    
+    def get_max_loan_amount(self, obj):
+        from .services import CreditScoringService
+        user = self.context['request'].user
+        return CreditScoringService.calculate_max_loan_amount(user)
     
     def validate_amount(self, value):
-        if value > 500000:
-            raise serializers.ValidationError("Loan amount exceeds maximum limit of 500,000")
+        from .services import CreditScoringService
+        user = self.context['request'].user
+        max_amount = CreditScoringService.calculate_max_loan_amount(user)
+        
+        if value > max_amount:
+            raise serializers.ValidationError(f"Loan amount exceeds maximum limit of {max_amount}")
         if value < 1000:
             raise serializers.ValidationError("Loan amount must be at least 1,000")
+        return value
+    
+    def validate_term_days(self, value):
+        if value < 7:
+            raise serializers.ValidationError("Loan term must be at least 7 days")
+        if value > 365:
+            raise serializers.ValidationError("Loan term cannot exceed 365 days")
         return value
 
 class LoanRepaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = LoanRepayment
         fields = '__all__'
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'paid_date']
 
 class LoanListSerializer(serializers.ModelSerializer):
     remaining_balance = serializers.ReadOnlyField()
@@ -47,8 +65,8 @@ class LoanDetailSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RepaymentCalculationSerializer(serializers.Serializer):
-    amount = serializers.DecimalField(max_digits=12, decimal_places=2)
-    term_days = serializers.IntegerField(default=30)
+    amount = serializers.DecimalField(max_digits=12, decimal_places=2, min_value=1000)
+    term_days = serializers.IntegerField(default=30, min_value=7, max_value=365)
     
     def calculate_repayment(self):
         amount = self.validated_data['amount']
@@ -65,5 +83,6 @@ class RepaymentCalculationSerializer(serializers.Serializer):
             'interest_rate': interest_rate,
             'total_repayable': float(total_repayable),
             'daily_repayment': float(daily_repayment),
+            'total_interest': float(interest_amount),
             'disbursement_fee': 100.0
         }

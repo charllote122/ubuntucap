@@ -4,7 +4,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate
 from .models import User, UserProfile
-from .serializers import UserSerializer, UserProfileSerializer
+from .serializers import UserSerializer, UserProfileSerializer, LoginSerializer
 import logging
 
 logger = logging.getLogger(__name__)

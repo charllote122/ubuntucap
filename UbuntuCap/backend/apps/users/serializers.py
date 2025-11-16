@@ -1,6 +1,5 @@
 from rest_framework import serializers
-from django.contrib.auth.hashers import make_password
-from .models import User, UserProfile
+from .models import User, UserProfile, MpesaTransaction
 import re
 
 class UserSerializer(serializers.ModelSerializer):
@@ -10,7 +9,8 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('id', 'phone_number', 'password', 'email', 'first_name', 'last_name', 
                  'national_id', 'business_name', 'business_type', 'business_location', 
-                 'business_age_months', 'mpesa_consent_granted', 'mpesa_phone_number')
+                 'business_age_months', 'mpesa_consent_granted', 'mpesa_phone_number',
+                 'created_at', 'updated_at')
         extra_kwargs = {
             'phone_number': {'required': True},
             'email': {'required': True},
@@ -35,6 +35,10 @@ class UserSerializer(serializers.ModelSerializer):
         if len(clean_phone) != 12:
             raise serializers.ValidationError("Phone number must be 12 digits including 254")
         
+        # Check uniqueness
+        if User.objects.filter(phone_number=clean_phone).exists():
+            raise serializers.ValidationError("A user with this phone number already exists.")
+        
         return clean_phone
     
     def validate_email(self, value):
@@ -42,13 +46,6 @@ class UserSerializer(serializers.ModelSerializer):
         if User.objects.filter(email=value).exists():
             raise serializers.ValidationError("A user with this email already exists.")
         return value
-    
-    def validate_phone_number(self, value):
-        """Ensure phone number is unique"""
-        clean_phone = re.sub(r'\D', '', str(value))
-        if User.objects.filter(phone_number=clean_phone).exists():
-            raise serializers.ValidationError("A user with this phone number already exists.")
-        return clean_phone
     
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -79,6 +76,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = UserProfile
+        fields = '__all__'
+
+class MpesaTransactionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MpesaTransaction
         fields = '__all__'
 
 class LoginSerializer(serializers.Serializer):

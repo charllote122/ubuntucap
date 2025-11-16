@@ -3,12 +3,13 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from django.db.models import Q
-from .models import Loan, LoanRepayment, LoanApplication
+from .models import Loan, LoanRepayment
 from .serializers import (
     LoanApplicationSerializer, LoanListSerializer, 
     LoanDetailSerializer, LoanRepaymentSerializer,
     RepaymentCalculationSerializer
 )
+from .services import CreditScoringService
 
 class LoanViewSet(ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
@@ -22,6 +23,11 @@ class LoanViewSet(ModelViewSet):
         elif self.action == 'list':
             return LoanListSerializer
         return LoanDetailSerializer
+    
+    def get_serializer_context(self):
+        context = super().get_serializer_context()
+        context['request'] = self.request
+        return context
     
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -39,39 +45,42 @@ class LoanViewSet(ModelViewSet):
                 'message': 'You have an existing loan application that needs to be completed first.'
             }, status=status.HTTP_400_BAD_REQUEST)
         
-        # Create loan application first
-        loan_application = LoanApplication.objects.create(
-            user=request.user,
-            **serializer.validated_data
-        )
-        
-        # TODO: Integrate with ML credit scoring here
-        # For now, auto-approve small loans for demo
-        if loan_application.amount <= 10000:
-            # Create the actual loan
+        try:
+            # Create loan
             loan = Loan.objects.create(
                 user=request.user,
-                amount=loan_application.amount,
-                purpose=loan_application.purpose,
-                business_type=request.user.business_type or 'other',
-                term_days=loan_application.term_days,
-                status='approved'
+                amount=serializer.validated_data['amount'],
+                purpose=serializer.validated_data['purpose'],
+                business_type=serializer.validated_data.get('business_type', 'other'),
+                term_days=serializer.validated_data.get('term_days', 30),
+                status='pending'
             )
+            
+            # Auto-approve if eligible
+            is_eligible, message = CreditScoringService.calculate_loan_eligibility(
+                request.user, loan.amount
+            )
+            
+            if is_eligible:
+                loan.approve_loan()
+                status_msg = 'approved'
+            else:
+                loan.status = 'rejected'
+                loan.save()
+                status_msg = 'rejected'
             
             return Response({
                 'success': True,
                 'loan_id': loan.id,
                 'status': loan.status,
-                'message': 'Loan application approved successfully'
+                'message': f'Loan application {status_msg}'
             }, status=status.HTTP_201_CREATED)
-        else:
-            # For larger loans, keep as pending for manual review
+            
+        except Exception as e:
             return Response({
-                'success': True,
-                'application_id': loan_application.id,
-                'status': 'pending',
-                'message': 'Loan application submitted for review'
-            }, status=status.HTTP_201_CREATED)
+                'success': False,
+                'error': str(e)
+            }, status=status.HTTP_400_BAD_REQUEST)
     
     @action(detail=False, methods=['get'])
     def user_loans(self, request):
@@ -93,6 +102,69 @@ class LoanViewSet(ModelViewSet):
             'loans': serializer.data
         })
     
+    @action(detail=True, methods=['post'])
+    def approve(self, request, pk=None):
+        """Approve a loan (admin only)"""
+        if not request.user.is_staff:
+            return Response({
+                'success': False,
+                'message': 'Permission denied'
+            }, status=status.HTTP_403_FORBIDDEN)
+            
+        loan = self.get_object()
+        success, message = loan.approve_loan()
+        
+        return Response({
+            'success': success,
+            'message': message
+        })
+    
+    @action(detail=True, methods=['post'])
+    def disburse(self, request, pk=None):
+        """Disburse a loan"""
+        loan = self.get_object()
+        success, message = loan.disburse_loan()
+        
+        return Response({
+            'success': success,
+            'message': message
+        })
+    
+    @action(detail=True, methods=['post'])
+    def repay(self, request, pk=None):
+        """Make a loan repayment"""
+        loan = self.get_object()
+        amount = request.data.get('amount')
+        mpesa_receipt = request.data.get('mpesa_receipt')
+        
+        if not amount:
+            return Response({
+                'success': False,
+                'message': 'Repayment amount is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            amount = float(amount)
+            repayment = loan.add_repayment(amount, mpesa_receipt)
+            
+            if repayment:
+                return Response({
+                    'success': True,
+                    'message': 'Repayment successful',
+                    'remaining_balance': float(loan.remaining_balance)
+                })
+            else:
+                return Response({
+                    'success': False,
+                    'message': 'Cannot process repayment for this loan'
+                }, status=status.HTTP_400_BAD_REQUEST)
+                
+        except ValueError:
+            return Response({
+                'success': False,
+                'message': 'Invalid amount format'
+            }, status=status.HTTP_400_BAD_REQUEST)
+    
     @action(detail=True, methods=['get'])
     def calculate_repayment(self, request, pk=None):
         """Calculate repayment schedule for a specific loan"""
@@ -104,6 +176,7 @@ class LoanViewSet(ModelViewSet):
             'interest_rate': float(loan.interest_rate),
             'total_repayable': float(loan.total_repayable),
             'daily_repayment': float(loan.total_repayable / loan.term_days),
+            'remaining_balance': float(loan.remaining_balance),
             'disbursement_fee': 100.0
         }
         
@@ -126,6 +199,21 @@ class LoanViewSet(ModelViewSet):
             'success': False,
             'errors': serializer.errors
         }, status=status.HTTP_400_BAD_REQUEST)
+    
+    @action(detail=False, methods=['get'])
+    def eligibility(self, request):
+        """Check loan eligibility and maximum amount"""
+        max_amount = CreditScoringService.calculate_max_loan_amount(request.user)
+        is_eligible, message = CreditScoringService.calculate_loan_eligibility(
+            request.user, max_amount
+        )
+        
+        return Response({
+            'success': True,
+            'is_eligible': is_eligible,
+            'max_loan_amount': max_amount,
+            'message': message
+        })
 
 class LoanRepaymentViewSet(ModelViewSet):
     serializer_class = LoanRepaymentSerializer

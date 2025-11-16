@@ -14,7 +14,7 @@ class UserManager(BaseUserManager):
             
         email = self.normalize_email(email)
         user = self.model(phone_number=phone_number, email=email, **extra_fields)
-        user.set_password(password)  # This hashes the password
+        user.set_password(password)
         user.save(using=self._db)
         return user
 
@@ -76,7 +76,7 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     
     # Credit information
-    credit_score = models.IntegerField(default=0)
+    credit_score = models.IntegerField(default=500)
     total_loans_taken = models.IntegerField(default=0)
     total_amount_borrowed = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     total_amount_repaid = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -116,6 +116,31 @@ class UserProfile(models.Model):
     
     def __str__(self):
         return f"Profile for {self.user.phone_number}"
+    
+    def update_credit_score(self):
+        """Update credit score based on transaction patterns"""
+        base_score = 500
+        
+        # Positive factors
+        if self.avg_monthly_volume > 50000:
+            base_score += 100
+        elif self.avg_monthly_volume > 25000:
+            base_score += 50
+            
+        if self.transaction_count_30d > 20:
+            base_score += 50
+            
+        if self.income_consistency_score > 0.7:
+            base_score += 50
+            
+        # Negative factors
+        if self.negative_balance_count > 5:
+            base_score -= 100
+        if self.high_risk_transactions > 10:
+            base_score -= 50
+            
+        self.credit_score = max(300, min(850, base_score))
+        self.save()
     
     def update_mpesa_activity_level(self):
         if self.transaction_count_30d >= 60:
@@ -162,6 +187,7 @@ class MpesaTransaction(models.Model):
             models.Index(fields=['user', 'transaction_time']),
             models.Index(fields=['transaction_time']),
         ]
+        ordering = ['-transaction_time']
     
     def __str__(self):
         return f"{self.transaction_id} - {self.amount} - {self.user.phone_number}"
