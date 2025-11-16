@@ -8,11 +8,16 @@
         "ghcr.io/devcontainers/features/docker-in-docker:2": {},
         "ghcr.io/devcontainers/features/azure-cli:1": {}
     },
-    "forwardPorts": [8000, 5432, 6379, 3000],
+    "forwardPorts": [8000, 8001, 5432, 6379, 3000],
     "portsAttributes": {
         "8000": {
             "label": "Django Backend",
             "onAutoForward": "notify"
+        },
+        "8001": {
+            "label": "Django API",
+            "onAutoForward": "notify",
+            "visibility": "public"
         },
         "3000": {
             "label": "React Frontend",
